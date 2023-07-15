@@ -1,0 +1,11 @@
+github repo: git@github.com:lailongwei/llbc.git
+branch: t/master
+copy to nrc proj time:2023-04-04 14:03:06
+
+===========================================================================
+last 5 times commit info:
+Tue Apr 4 14:02:55 2023 +0800: [b85623a4]  (HEAD -> t/master, origin/t/master) Merge branch 'master' into t/master <lailongwei, 964855959@qq.com>
+Tue Apr 4 13:21:15 2023 +0800: [8b612b5a]  (origin/master, origin/HEAD, master) 优化非LogRunnable start线程stop时的等待逻辑 <lailongwei, lailongwei@126.com>
+Tue Apr 4 12:30:58 2023 +0800: [f69467bb]  Merge branch 'master' into t/master <lailongwei, 964855959@qq.com>
+Tue Apr 4 12:29:57 2023 +0800: [4037ecfa]  LogRunnable兼容非Start()调用者线程进行Stop()的情况, 以确保在Crash-Hook中的LoggerMgr->Finalize()调用可正常结束 <lailongwei, lailongwei@126.com>
+Tue Apr 4 12:15:44 2023 +0800: [98598500]  Merge branch 'master' into t/master <lailongwei, 964855959@qq.com>

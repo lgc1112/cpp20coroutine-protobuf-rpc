@@ -19,18 +19,24 @@ RPC_PATH="${PROJ_ROOT}/rpc"
 BUILD_PATH="./build/"
 
 # build protobuf lib script
-
 if [[ ${1} == "proto" ]]; then 
     echo "build proto"
     rm -fr ${BUILD_PATH}
     cd $PROTO_PATH
     autoreconf -f -i
     ./configure
-    make -j12
-    cd -
+    make -j15
+    echo "build proto done"
     exit 0
 fi
 
+
+if [[ ${1} == "llbc" ]]; then 
+    cd $LLBC_PATH
+    make core_lib -j15
+    echo "build llbc done"
+    exit 0
+fi
 # # build llbc lib script
 # # cd $LLBC_PATH
 # # make coro_lib
