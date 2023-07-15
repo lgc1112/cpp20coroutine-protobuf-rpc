@@ -6,28 +6,28 @@
  * @edit: regangcli
  * @brief:
  */
-#include "rpc_service_mgr.h"
+#include "rpc_mgr.h"
 #include "conn_mgr.h"
 #include "llbc.h"
 #include "rpc_channel.h"
 #include "rpc_coro_mgr.h"
 using namespace llbc;
 
-RpcServiceMgr::RpcServiceMgr(ConnMgr *connMgr) : connMgr_(connMgr) {
+RpcMgr::RpcMgr(ConnMgr *connMgr) : connMgr_(connMgr) {
   connMgr_->Subscribe(
       RpcOpCode::RpcReq,
-      LLBC_Delegate<void(LLBC_Packet &)>(this, &RpcServiceMgr::HandleRpcReq));
+      LLBC_Delegate<void(LLBC_Packet &)>(this, &RpcMgr::HandleRpcReq));
   connMgr_->Subscribe(
       RpcOpCode::RpcRsp,
-      LLBC_Delegate<void(LLBC_Packet &)>(this, &RpcServiceMgr::HandleRpcRsp));
+      LLBC_Delegate<void(LLBC_Packet &)>(this, &RpcMgr::HandleRpcRsp));
 }
 
-RpcServiceMgr::~RpcServiceMgr() {
+RpcMgr::~RpcMgr() {
   connMgr_->Unsubscribe(RpcOpCode::RpcReq);
   connMgr_->Unsubscribe(RpcOpCode::RpcRsp);
 }
 
-void RpcServiceMgr::AddService(::google::protobuf::Service *service) {
+void RpcMgr::AddService(::google::protobuf::Service *service) {
   ServiceInfo service_info;
   service_info.service = service;
   service_info.sd = service->GetDescriptor();
@@ -39,7 +39,7 @@ void RpcServiceMgr::AddService(::google::protobuf::Service *service) {
   _services[service_info.sd->name()] = service_info;
 }
 
-void RpcServiceMgr::HandleRpcReq(LLBC_Packet &packet) {
+void RpcMgr::HandleRpcReq(LLBC_Packet &packet) {
   // 读取serviceName&methodName
   int srcCoroId;
   std::string serviceName, methodName;
@@ -72,12 +72,12 @@ void RpcServiceMgr::HandleRpcReq(LLBC_Packet &packet) {
 
   // 创建rpc完成回调函数
   auto done = ::google::protobuf::NewCallback(
-      this, &RpcServiceMgr::OnRpcDone, controller, rsp);
+      this, &RpcMgr::OnRpcDone, controller, rsp);
 
   service->CallMethod(md, controller, req, rsp, done);
 }
 
-void RpcServiceMgr::HandleRpcRsp(LLBC_Packet &packet) {
+void RpcMgr::HandleRpcRsp(LLBC_Packet &packet) {
   // 协程方案, 唤醒源协程处理rpc回复
   int dstCoroId = 0;
   if (packet.Read(dstCoroId)  != LLBC_OK)
@@ -89,7 +89,7 @@ void RpcServiceMgr::HandleRpcRsp(LLBC_Packet &packet) {
   LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "resume coro:%d, packet:%s",
        dstCoroId, packet.ToString().c_str());
 
-  auto coroInfo = g_rpcCoroMgr->GetRpcCoroInfo(int(dstCoroId));
+  auto coroInfo = s_rpcCoroMgr->GetRpcCoroInfo(int(dstCoroId));
   if (!coroInfo) {
     LLOG(nullptr, nullptr, LLBC_LogLevel::Error, "coro not found, coroId:%d",
          dstCoroId);
@@ -115,12 +115,12 @@ void RpcServiceMgr::HandleRpcRsp(LLBC_Packet &packet) {
     coroInfo->GetController()->SetFailed(errText);
   }
 
-  g_rpcCoroMgr->ResumeRpcCoro(int(dstCoroId));
+  s_rpcCoroMgr->ResumeRpcCoro(int(dstCoroId));
   LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "resume coro:%d finished, packet:%s, errText:%s",
        dstCoroId, packet.ToString().c_str(), errText.c_str());
 }
 
-void RpcServiceMgr::OnRpcDone(MyController *controller, google::protobuf::Message *rsp) {
+void RpcMgr::OnRpcDone(MyController *controller, google::protobuf::Message *rsp) {
   LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "OnRpcDone, rsp:%s",
        rsp->DebugString().c_str());
 

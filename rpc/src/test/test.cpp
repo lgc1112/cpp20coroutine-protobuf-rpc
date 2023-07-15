@@ -5,7 +5,7 @@
 #include "echo_service_impl.h"
 #include "llbc.h"
 #include "rpc_channel.h"
-#include "rpc_service_mgr.h"
+#include "rpc_mgr.h"
 
 RpcCoroMgr coro_mgr;
 int main() {
@@ -45,8 +45,8 @@ void Call(void* parentCoro) {
 
     std::cout << "CallMeathod handle:" << parentCoro << std::endl;
     
-    g_rpcCoroMgr->AddRpcCoro(parentCoro, &rsp);
-    // g_rpcCoroMgr->CreateRpcCoro(parentCoro, &rsp);
+    s_rpcCoroMgr->AddRpcCoro(parentCoro, &rsp);
+    // s_rpcCoroMgr->CreateRpcCoro(parentCoro, &rsp);
 }
 
 
@@ -63,7 +63,7 @@ int main2() {
     CallMeathod();
     {
         std::cout << "resume1" << std::endl;
-        g_rpcCoroMgr->ResumeRpcCoro(1);
+        s_rpcCoroMgr->ResumeRpcCoro(1);
         std::cout << "Coroutine with id " << 1 << " canceled" << std::endl;
     }
     return 0;

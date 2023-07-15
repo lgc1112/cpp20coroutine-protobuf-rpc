@@ -20,8 +20,7 @@ void MyEchoService::Echo(::google::protobuf::RpcController *controller,
   LLOG(nullptr, nullptr, LLBC_LogLevel::Info, "received, msg:%s",
        request->msg().c_str());
   // LLBC_Sleep(5000);
-  response->set_msg(std::string(" Echo >>>>>>> ") + request->msg() +
-                    std::string("'"));
+  response->set_msg(std::string(" Echo >>>>>>> ") + request->msg());
   done->Run();
 }
 
@@ -30,30 +29,26 @@ RpcCoro InnerCallMeathod(::google::protobuf::RpcController *controller,
                          ::echo::EchoResponse *rsp,
                          ::google::protobuf::Closure *done) {
   // 初始化内部 rpc req & rsp
-  echo::GetDataReq innerReq;
-  innerReq.set_msg("inner rpc.");
-  echo::GetDataRsp innerRsp;
+  echo::EchoRequest innerReq;
+  innerReq.set_msg("Relay Call >>>>>>" + req->msg());
+  echo::EchoResponse innerRsp;
   // 创建 rpc channel
-  RpcChannel *channel = s_ConnMgr->CreateRpcChannel("127.0.0.1", 6699);
+  RpcChannel *channel = s_ConnMgr->GetRpcChannel("127.0.0.1", 6688);
   if (!channel) {
-    LLOG(nullptr, nullptr, LLBC_LogLevel::Info, "CreateRpcChannel Fail");
-    rsp->set_msg(req->msg() + " ---- inner rpc call fail");
-    controller->SetFailed("CreateRpcChannel Fail");
+    LLOG(nullptr, nullptr, LLBC_LogLevel::Info, "GetRpcChannel Fail");
+    rsp->set_msg(req->msg() + " ---- inner rpc call server not exist");
+    controller->SetFailed("GetRpcChannel Fail");
     done->Run();
     co_return;
   }
 
-  void *handle = co_await GetHandleAwaiter{};
-
   LLOG(nullptr, nullptr, LLBC_LogLevel::Info, "call, msg:%s",
        innerReq.msg().c_str());
 
-  // 内部 rpc 调用
-  MyController cntl;
-  cntl.SetPtrParam(handle);
+  MyController cntl(co_await GetHandleAwaiter{});\
 
   echo::EchoService_Stub stub(channel);
-  stub.GetData(&cntl, &innerReq, &innerRsp, nullptr);
+  stub.Echo(&cntl, &innerReq, &innerRsp, nullptr);
   co_await std::suspend_always{};
   LLOG(nullptr, nullptr, LLBC_LogLevel::Info, "Recv rsp, status:%s, rsp:%s",
        cntl.Failed() ? cntl.ErrorText().c_str() : "success",
@@ -62,13 +57,13 @@ RpcCoro InnerCallMeathod(::google::protobuf::RpcController *controller,
     controller->SetFailed(cntl.ErrorText());
   }
 
-  rsp->set_msg(req->msg() + innerRsp.msg());
+  rsp->set_msg(innerRsp.msg());
   done->Run();
 
   co_return;
 }
 
-void MyEchoService::Echo2(::google::protobuf::RpcController *controller,
+void MyEchoService::RelayEcho(::google::protobuf::RpcController *controller,
                           const ::echo::EchoRequest *req,
                           ::echo::EchoResponse *rsp,
                           ::google::protobuf::Closure *done) {

@@ -19,10 +19,10 @@ class LLBC_Packet;
 
 class ConnMgr;
 class MyController;
-class RpcServiceMgr {
+class RpcMgr {
 public:
-  RpcServiceMgr(ConnMgr *connMgr);
-  virtual ~RpcServiceMgr();
+  RpcMgr(ConnMgr *connMgr);
+  virtual ~RpcMgr();
 
   // 添加服务
   void AddService(::google::protobuf::Service *service);

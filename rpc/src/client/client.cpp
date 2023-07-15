@@ -4,7 +4,7 @@
 #include "llbc.h"
 #include "rpc_channel.h"
 #include "rpc_coro_mgr.h"
-#include "rpc_service_mgr.h"
+#include "rpc_mgr.h"
 #include <csignal>
 #include <iostream>
 
@@ -14,17 +14,26 @@ RpcCoro CallMeathod(RpcChannel *channel) {
   // 创建rpc req & resp
   echo::EchoRequest req;
   echo::EchoResponse rsp;
-  req.set_msg("hello, myrpc.");
-  void *handle = co_await GetHandleAwaiter{};
+  // void *handle = co_await GetHandleAwaiter{};
 
-  LLOG(nullptr, nullptr, LLBC_LogLevel::Info, "Rpc call, msg:%s",
-       req.msg().c_str());
-  MyController cntl;
-  cntl.SetPtrParam(handle);
+  MyController cntl(co_await GetHandleAwaiter{});
   echo::EchoService_Stub stub(channel);
+
+  req.set_msg("Hello, Echo.");
+  LLOG(nullptr, nullptr, LLBC_LogLevel::Info, "Rpc Echo Call, msg:%s",
+       req.msg().c_str());
   stub.Echo(&cntl, &req, &rsp, nullptr);
   co_await std::suspend_always{};
-  LLOG(nullptr, nullptr, LLBC_LogLevel::Info, "Recv rsp, status:%s, rsp:%s", cntl.Failed() ? cntl.ErrorText().c_str() : "success", 
+  LLOG(nullptr, nullptr, LLBC_LogLevel::Info, "Recv Echo Rsp, status:%s, rsp:%s", cntl.Failed() ? cntl.ErrorText().c_str() : "success", 
+       rsp.msg().c_str());
+  
+
+  req.set_msg("Hello, RelayEcho.");
+  LLOG(nullptr, nullptr, LLBC_LogLevel::Info, "Rpc RelayEcho Call, msg:%s",
+       req.msg().c_str());
+  stub.RelayEcho(&cntl, &req, &rsp, nullptr);
+  co_await std::suspend_always{};
+  LLOG(nullptr, nullptr, LLBC_LogLevel::Info, "Recv RelayEcho Rsp, status:%s, rsp:%s", cntl.Failed() ? cntl.ErrorText().c_str() : "success", 
        rsp.msg().c_str());
   co_return;
 }
@@ -65,9 +74,9 @@ int main() {
   }
 
   // 创建rpc channel
-  RpcChannel *channel = connMgr->CreateRpcChannel("127.0.0.1", 6688);
+  RpcChannel *channel = connMgr->GetRpcChannel("127.0.0.1", 6688);
   if (!channel) {
-    LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "CreateRpcChannel Fail");
+    LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "GetRpcChannel Fail");
     return -1;
   }
 
@@ -81,14 +90,14 @@ int main() {
   // 创建rpc controller & stub
   MyController cntl;
   echo::EchoService_Stub stub(channel);
-  RpcServiceMgr serviceMgr(connMgr);
+  RpcMgr serviceMgr(connMgr);
 
   // 死循环处理 rpc 请求
   int count = 0;
   while (!stop) {
     // tick 处理接收到的 rpc req和rsp
     // 若有rsp，Tick内部会调用Rsp处理函数，从而唤醒对应休眠的协程
-    g_rpcCoroMgr->Update();
+    s_rpcCoroMgr->Update();
     auto isBusy = connMgr->Tick();
     if (!isBusy) {
       LLBC_Sleep(1);

@@ -14,7 +14,7 @@ public:
   void Echo(::google::protobuf::RpcController *controller,
             const ::echo::EchoRequest *request, ::echo::EchoResponse *response,
             ::google::protobuf::Closure *done) override;
-  void Echo2(::google::protobuf::RpcController *controller,
+  void RelayEcho(::google::protobuf::RpcController *controller,
              const ::echo::EchoRequest *request, ::echo::EchoResponse *response,
              ::google::protobuf::Closure *done) override;
 

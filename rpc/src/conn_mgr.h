@@ -132,8 +132,8 @@ public:
   int Init();
   // 启动rpc网络服务
   int StartRpcService(const char *ip, int port);
-  // 创建rpc客户端通信通道
-  RpcChannel *CreateRpcChannel(const char *ip, int port);
+  // 获取/创建rpc客户端通信通道
+  RpcChannel *GetRpcChannel(const char *ip, int port);
 
   // 销毁rpc客户端通信通道
   int CloseSession(int sessionId);

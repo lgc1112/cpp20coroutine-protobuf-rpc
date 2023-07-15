@@ -30,7 +30,7 @@ void RpcChannel::CallMethod(const ::google::protobuf::MethodDescriptor *method,
 
   // 填充原始协程id
   auto mController = static_cast<MyController *>(controller);
-  auto coroId = g_rpcCoroMgr->AddRpcCoro(mController, response);
+  auto coroId = s_rpcCoroMgr->AddRpcCoro(mController, response);
   sendPacket->Write(coroId);
   sendPacket->Write(*request);
 

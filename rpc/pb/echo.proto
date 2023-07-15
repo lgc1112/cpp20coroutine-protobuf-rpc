@@ -23,6 +23,6 @@ message GetDataRsp {
 
 service EchoService {
     rpc Echo(EchoRequest) returns (EchoResponse);
-    rpc Echo2(EchoRequest) returns (EchoResponse);
+    rpc RelayEcho(EchoRequest) returns (EchoResponse);
     rpc GetData(GetDataReq) returns (GetDataRsp);
 }

@@ -19,6 +19,7 @@ class ConnMgr;
 class MyController : public ::google::protobuf::RpcController {
 public:
   MyController() {}
+  MyController(void *ptrPrams) : ptrPrams_(ptrPrams) {}
   virtual void Reset(){};
 
   virtual bool Failed() const { return isFailed_; };
@@ -41,7 +42,6 @@ public:
   void SetPtrParam(void *ptrPrams) { ptrPrams_ = ptrPrams; }
 
 private:
-  void *coro_;
   bool isFailed_ = false;
   std::string errorText_;
   int param1_ = 0;

@@ -11,7 +11,7 @@
 
 #include "conn_mgr.h"
 #include "echo.pb.h"
-#include "rpc_service_mgr.h"
+#include "rpc_mgr.h"
 #include "echo_service_impl.h"
 #include "rpc_coro_mgr.h"
 #include "rpc_channel.h"

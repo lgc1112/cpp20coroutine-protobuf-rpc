@@ -134,4 +134,4 @@ private:
       coroTimeHeap_; // 超时时间小根堆堆
 };
 
-#define g_rpcCoroMgr ::llbc::LLBC_Singleton<RpcCoroMgr>::Instance()
+#define s_rpcCoroMgr ::llbc::LLBC_Singleton<RpcCoroMgr>::Instance()

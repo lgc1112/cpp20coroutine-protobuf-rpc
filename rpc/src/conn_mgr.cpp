@@ -120,7 +120,7 @@ int ConnMgr::StartRpcService(const char *ip, int port) {
 }
 
 // 创建rpc客户端通信通道
-RpcChannel *ConnMgr::CreateRpcChannel(const char *ip, int port) {
+RpcChannel *ConnMgr::GetRpcChannel(const char *ip, int port) {
   std::string addr = std::string(ip) + ":" + std::to_string(port);
   auto it = addr2Channel_.find(addr);
   if (it != addr2Channel_.end()) {
@@ -135,7 +135,7 @@ RpcChannel *ConnMgr::CreateRpcChannel(const char *ip, int port) {
   }
 
   LLOG(nullptr, nullptr, LLBC_LogLevel::Trace,
-       "CreateRpcChannel, sessionId:%d, addr:%s", sessionId, addr.c_str());
+       "GetRpcChannel, sessionId:%d, addr:%s", sessionId, addr.c_str());
   session2Addr_.emplace(sessionId, addr);
   return addr2Channel_.emplace(addr, new RpcChannel(this, sessionId))
       .first->second;

@@ -10,7 +10,7 @@
 #include "llbc.h"
 #include "rpc_channel.h"
 #include "rpc_coro_mgr.h"
-#include "rpc_service_mgr.h"
+#include "rpc_mgr.h"
 #include <csignal>
 
 using namespace llbc;
@@ -53,14 +53,14 @@ int main() {
     return -1;
   }
 
-  RpcServiceMgr serviceMgr(connMgr);
+  RpcMgr serviceMgr(connMgr);
   MyEchoService echoService;
   serviceMgr.AddService(&echoService);
 
   // 死循环处理rpc请求
   while (!stop) {
     connMgr->Tick();
-    g_rpcCoroMgr->Update();
+    s_rpcCoroMgr->Update();
     LLBC_Sleep(1);
   }
 

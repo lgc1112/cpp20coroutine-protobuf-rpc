@@ -2,7 +2,7 @@
  * @Author: regangcli regangcli@tencent.com
  * @Date: 2023-07-09 14:40:28
  * @LastEditors: regangcli regangcli@tencent.com
- * @LastEditTime: 2023-07-15 11:13:31
+ * @LastEditTime: 2023-07-15 20:56:56
  * @FilePath: /projects/newRpc/rpc-demo/src/server/server2.cpp
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置
  * 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
@@ -12,7 +12,7 @@
 #include "llbc.h"
 #include "rpc_channel.h"
 #include "rpc_coro_mgr.h"
-#include "rpc_service_mgr.h"
+#include "rpc_mgr.h"
 #include <csignal>
 
 using namespace llbc;
@@ -33,13 +33,16 @@ int main() {
   LLBC_Defer(LLBC_Cleanup());
 
   // 初始化日志
-  auto ret = LLBC_LoggerMgrSingleton->Initialize(LLBC_Directory::CurDir() + "/../../log/cfg/server_log.cfg");
+  const std::string path = __FILE__;
+  const std::string logPath = path.substr(0, path.find_last_of("/\\"))+ "/../../log/cfg/server_log.cfg";
+  auto ret = LLBC_LoggerMgrSingleton->Initialize(logPath);
   if (ret == LLBC_FAILED) {
     std::cout << "Initialize logger failed, error: " << LLBC_FormatLastError()
-              << "path:" << LLBC_Directory::CurDir() + "/../../log/cfg/server_log.cfg"
+              << "path:" << logPath
               << std::endl;
     return -1;
   }
+
   LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "Hello Server!");
 
   ConnMgr *connMgr = s_ConnMgr;
@@ -52,14 +55,14 @@ int main() {
     return -1;
   }
 
-  RpcServiceMgr serviceMgr(connMgr);
+  RpcMgr serviceMgr(connMgr);
   MyEchoService echoService;
   serviceMgr.AddService(&echoService);
 
   // 死循环处理rpc请求
   while (!stop) {
     connMgr->Tick();
-    g_rpcCoroMgr->Update();
+    s_rpcCoroMgr->Update();
     LLBC_Sleep(1);
   }
 
