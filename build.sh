@@ -68,11 +68,16 @@ elif [[ ${1} == "llbc" ]]; then
 elif [[ ${1} == "rebuild" ]]; then 
     re_build_rpc
     exit 0
+elif [[ ${1} == "all" ]]; then 
+    build_protobuf
+    build_llbc
+    re_build_rpc
+    exit 0
 elif [[ ! -n "$1" ]]; then 
     build_rpc
     exit 0
 else 
-    echo "Usage: $0 |[proto|llbc|rebuild]"
+    echo "Usage: $0 |[proto|llbc|rebuild|all]"
     exit 1
 fi
 
