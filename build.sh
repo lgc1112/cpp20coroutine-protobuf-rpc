@@ -24,18 +24,21 @@ build_protobuf() {
     echo "Building protobuf"
     rm -fr ${BUILD_PATH}
     cd $PROTO_PATH
-    autoreconf -f -i
+    # autoreconf -f -i
     ./configure
     make -j15
     echo "Building protobuf done"
+    cd -
 }
 
 # build llbc lib function
 build_llbc() {
+    # sudo yum install libuuid libuuid-devel
     echo "Building llbc"
     cd $LLBC_PATH
     make core_lib -j15
     echo "Building llbc done"
+    cd -
 }
 
 # build rpc function
@@ -47,12 +50,14 @@ build_rpc() {
 
     mkdir -p ${BUILD_PATH} && cd ${BUILD_PATH}
     cmake -DCMAKE_BUILD_TYPE=Debug .. && make VERBOSE=1 -j15
-    echo "Building llbc done"
+    echo "Building rpc done"
 }
 
 re_build_rpc() {
     echo "Building all rpc"
-    rm -fr ${BUILD_PATH}
+    rm -rf ${BUILD_PATH}
+    rm -rf $RPC_PATH/pb/*.pb.*
+    rm -rf $RPC_PATH/bin
     # build_protobuf
     # build_llbc
     build_rpc
@@ -80,15 +85,4 @@ else
     echo "Usage: $0 |[proto|llbc|rebuild|all]"
     exit 1
 fi
-
-# # compile rpc
-# target=${1}
-# if [[ "$target" == "all" ]]; then 
-#     echo "build all"
-#     rm -fr ${BUILD_PATH}
-# else
-#     echo "build"
-# fi
-# mkdir -p ${BUILD_PATH} && cd ${BUILD_PATH}
-# cmake -DCMAKE_BUILD_TYPE=Debug .. && make VERBOSE=1 -j12
 
