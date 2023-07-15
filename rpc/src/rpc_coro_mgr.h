@@ -24,7 +24,7 @@ class LLBC_Packet;
 }
 
 class RpcCoroMgr;
-class MyController;
+class RpcController;
 
 #define CoroTimeoutTime 5000 // milli seconds
 class RpcCoro {
@@ -79,19 +79,24 @@ struct GetHandleAwaiter {
   void *handle_;
 };
 
-class CoroInfo {
+class RpcCoroInfo {
 public:
-  CoroInfo(int coroId, RpcCoroMgr *coroMgr, MyController *controller,
+  RpcCoroInfo(int coroId, RpcCoroMgr *coroMgr, RpcController *controller,
            google::protobuf::Message *rsp, int timeoutTime = CoroTimeoutTime)
       : id_(coroId), coroMgr_(coroMgr), controller_(controller), rsp_(rsp),
         timeoutTime_(llbc::LLBC_GetMilliSeconds() + timeoutTime) {}
 
-  MyController *GetController() const { return controller_; }
-  void *GetAddr() const;
+  // 获取rpc协程的Controller
+  RpcController *GetController() const { return controller_; }
+  // 获取rpc协程的handle
+  void *GetHandle() const;
+  // 获取rpc协程的id
   int GetId() const { return id_; }
+  // 根据接收到的packet解析出rsp
   int DecodeRsp(llbc::LLBC_Packet *packet);
+  // 获取超时时间
   llbc::sint64 GetTimeoutTime() const { return timeoutTime_; }
-
+  // 恢复协程
   void Resume();
 
   void OnCoroTimeout();
@@ -100,38 +105,42 @@ public:
 private:
   int id_;
   RpcCoroMgr *coroMgr_;
-  MyController *controller_;  
+  RpcController *controller_;  
   google::protobuf::Message *rsp_;
   llbc::sint64 timeoutTime_;
 };
 
 struct CoroInfoWeatherCmp {
-  bool operator()(CoroInfo *a, CoroInfo *b) {
+  bool operator()(RpcCoroInfo *a, RpcCoroInfo *b) {
     return a->GetTimeoutTime() < b->GetTimeoutTime();
   }
 };
 
-//
+// 协程管理器
 class RpcCoroMgr {
 public:
   RpcCoroMgr() {}
   ~RpcCoroMgr();
 
-  int AddRpcCoro(MyController *controller, google::protobuf::Message *rsp);
-  CoroInfo *GetRpcCoroInfo(int coroId);
+  // 添加协程信息
+  int AddRpcCoroInfo(RpcController *controller, google::protobuf::Message *rsp);
+  // 获取协程信息
+  RpcCoroInfo *GetRpcCoroInfo(int coroId);
+  // 恢复对应的协程
   void ResumeRpcCoro(int coroId);
-  void Update(); // 处理超时协程
+  // 主协程定时调用，处理超时协程
+  void Update();
 
   llbc::LLBC_Packet *GetRecvPacket() { return recvPacket_; }
   void SetRecvPacket(llbc::LLBC_Packet *packet) { recvPacket_ = packet; }
 
 private:
-  std::unordered_map<int, CoroInfo *> coroInfos_;
+  std::unordered_map<int, RpcCoroInfo *> coroInfos_;
   int maxCoroId = 1;
   llbc::LLBC_Packet *recvPacket_ = nullptr;
 
-  llbc::LLBC_BinaryHeap<CoroInfo *, CoroInfoWeatherCmp>
+  llbc::LLBC_BinaryHeap<RpcCoroInfo *, CoroInfoWeatherCmp>
       coroTimeHeap_; // 超时时间小根堆堆
 };
 
-#define s_rpcCoroMgr ::llbc::LLBC_Singleton<RpcCoroMgr>::Instance()
+#define s_RpcCoroMgr ::llbc::LLBC_Singleton<RpcCoroMgr>::Instance()

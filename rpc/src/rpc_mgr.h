@@ -18,7 +18,7 @@ class LLBC_Packet;
 }
 
 class ConnMgr;
-class MyController;
+class RpcController;
 class RpcMgr {
 public:
   RpcMgr(ConnMgr *connMgr);
@@ -31,8 +31,10 @@ private:
   // 处理RPC请求和返回包
   void HandleRpcReq(llbc::LLBC_Packet &packet);
   void HandleRpcRsp(llbc::LLBC_Packet &packet);
+
+
   // 处理RPC处理结束
-  void OnRpcDone(MyController *controller, google::protobuf::Message *rsp);
+  void OnRpcDone(RpcController *controller, google::protobuf::Message *rsp);
 
 private:
   struct ServiceInfo {

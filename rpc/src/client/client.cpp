@@ -16,12 +16,14 @@ RpcCoro CallMeathod(RpcChannel *channel) {
   echo::EchoResponse rsp;
   // void *handle = co_await GetHandleAwaiter{};
 
-  MyController cntl(co_await GetHandleAwaiter{});
+  // 获取当前协程handle并构造proto controller并构造proto rpc stub并
+  RpcController cntl(co_await GetHandleAwaiter{});
   echo::EchoService_Stub stub(channel);
 
   req.set_msg("Hello, Echo.");
   LLOG(nullptr, nullptr, LLBC_LogLevel::Info, "Rpc Echo Call, msg:%s",
        req.msg().c_str());
+  // 调用生成的rpc方法Echo,然后挂起协程等待返回
   stub.Echo(&cntl, &req, &rsp, nullptr);
   co_await std::suspend_always{};
   LLOG(nullptr, nullptr, LLBC_LogLevel::Info, "Recv Echo Rsp, status:%s, rsp:%s", cntl.Failed() ? cntl.ErrorText().c_str() : "success", 
@@ -31,6 +33,7 @@ RpcCoro CallMeathod(RpcChannel *channel) {
   req.set_msg("Hello, RelayEcho.");
   LLOG(nullptr, nullptr, LLBC_LogLevel::Info, "Rpc RelayEcho Call, msg:%s",
        req.msg().c_str());
+  // 调用生成的rpc方法RelayEcho,然后挂起协程等待返回
   stub.RelayEcho(&cntl, &req, &rsp, nullptr);
   co_await std::suspend_always{};
   LLOG(nullptr, nullptr, LLBC_LogLevel::Info, "Recv RelayEcho Rsp, status:%s, rsp:%s", cntl.Failed() ? cntl.ErrorText().c_str() : "success", 
@@ -65,8 +68,7 @@ int main() {
   }
 
   // 初始化连接管理器
-  ConnMgr *connMgr = s_ConnMgr;
-  ret = connMgr->Init();
+  ret = s_ConnMgr->Init();
   if (ret != LLBC_OK) {
     LLOG(nullptr, nullptr, LLBC_LogLevel::Trace,
          "Initialize connMgr failed, error:%s", LLBC_FormatLastError());
@@ -74,7 +76,7 @@ int main() {
   }
 
   // 创建rpc channel
-  RpcChannel *channel = connMgr->GetRpcChannel("127.0.0.1", 6688);
+  RpcChannel *channel = s_ConnMgr->GetRpcChannel("127.0.0.1", 6688);
   if (!channel) {
     LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "GetRpcChannel Fail");
     return -1;
@@ -88,21 +90,21 @@ int main() {
   req.set_msg("hello, myrpc.");
 
   // 创建rpc controller & stub
-  MyController cntl;
+  RpcController cntl;
   echo::EchoService_Stub stub(channel);
-  RpcMgr serviceMgr(connMgr);
+  RpcMgr serviceMgr(s_ConnMgr);
 
   // 死循环处理 rpc 请求
   int count = 0;
   while (!stop) {
-    // tick 处理接收到的 rpc req和rsp
-    // 若有rsp，Tick内部会调用Rsp处理函数，从而唤醒对应休眠的协程
-    s_rpcCoroMgr->Update();
-    auto isBusy = connMgr->Tick();
+    // 更新协程管理器，处理超时协程
+    s_RpcCoroMgr->Update();
+    // 更新连接管理器，处理接收到的rpc req和rsp
+    auto isBusy = s_ConnMgr->Tick();
     if (!isBusy) {
       LLBC_Sleep(1);
       ++count;
-      // 满1s就创建一个新协协程发一个包
+      // 满1s就创建一个新协协程发一个请求包
       if (count == 1000) {
         count = 0;
         LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "CallMeathod Start");

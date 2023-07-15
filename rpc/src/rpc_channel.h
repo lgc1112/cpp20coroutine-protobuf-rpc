@@ -16,10 +16,10 @@
 #include "rpc_coro_mgr.h"
 #include <google/protobuf/message.h>
 class ConnMgr;
-class MyController : public ::google::protobuf::RpcController {
+class RpcController : public ::google::protobuf::RpcController {
 public:
-  MyController() {}
-  MyController(void *ptrPrams) : ptrPrams_(ptrPrams) {}
+  RpcController() {}
+  RpcController(void *ptrPrams) : ptrPrams_(ptrPrams) {}
   virtual void Reset(){};
 
   virtual bool Failed() const { return isFailed_; };

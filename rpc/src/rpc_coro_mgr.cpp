@@ -12,9 +12,9 @@
 
 using namespace llbc;
 
-void *CoroInfo::GetAddr() const { return controller_->GetPtrParam(); }
+void *RpcCoroInfo::GetHandle() const { return controller_->GetPtrParam(); }
 
-int CoroInfo::DecodeRsp(llbc::LLBC_Packet *packet) {
+int RpcCoroInfo::DecodeRsp(llbc::LLBC_Packet *packet) {
   if (!packet || packet->Read(*rsp_) != LLBC_OK) {
     LLOG(nullptr, nullptr, LLBC_LogLevel::Error, "Read recvPacket fail");
     return LLBC_FAILED;
@@ -22,15 +22,15 @@ int CoroInfo::DecodeRsp(llbc::LLBC_Packet *packet) {
   return LLBC_OK;
 }
 
-void CoroInfo::Resume() { coroMgr_->ResumeRpcCoro(id_); }
+void RpcCoroInfo::Resume() { coroMgr_->ResumeRpcCoro(id_); }
 
-void CoroInfo::OnCoroTimeout() {
+void RpcCoroInfo::OnCoroTimeout() {
   LLOG(nullptr, nullptr, LLBC_LogLevel::Warn, "Coro %d timeout, resume", id_);
   controller_->SetFailed("timeout");
   Resume();
 }
 
-void CoroInfo::OnCoroCancel() {
+void RpcCoroInfo::OnCoroCancel() {
   LLOG(nullptr, nullptr, LLBC_LogLevel::Warn, "Coro %d cancelled, resume", id_);
   controller_->SetFailed("cancelled");
   Resume();
@@ -44,16 +44,16 @@ RpcCoroMgr::~RpcCoroMgr() {
   }
 }
 
-int RpcCoroMgr::AddRpcCoro(MyController *controller,
+int RpcCoroMgr::AddRpcCoroInfo(RpcController *controller,
                            google::protobuf::Message *rsp) {
   int id = maxCoroId++;
-  auto coroInfo = new CoroInfo(id, this, controller, rsp);
+  auto coroInfo = new RpcCoroInfo(id, this, controller, rsp);
   coroInfos_[id] = coroInfo;
   coroTimeHeap_.Insert(coroInfo);
   return id;
 }
 
-CoroInfo *RpcCoroMgr::GetRpcCoroInfo(int coroId) {
+RpcCoroInfo *RpcCoroMgr::GetRpcCoroInfo(int coroId) {
   auto it = coroInfos_.find(coroId);
   if (it == coroInfos_.end()) {
     LLOG(nullptr, nullptr, LLBC_LogLevel::Error,
@@ -73,7 +73,7 @@ void RpcCoroMgr::ResumeRpcCoro(int coroId) {
   auto coroInfo = it->second;
   LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "parentCoro resume");
   std::coroutine_handle<RpcCoro::promise_type>::from_address(
-      coroInfo->GetAddr())
+      coroInfo->GetHandle())
       .resume();
   LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "parentCoro resumed");
 

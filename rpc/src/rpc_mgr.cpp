@@ -66,7 +66,7 @@ void RpcMgr::HandleRpcReq(LLBC_Packet &packet) {
   }
   auto rsp = service->GetResponsePrototype(md).New();
 
-  auto controller = new MyController();
+  auto controller = new RpcController();
   controller->SetParam1(packet.GetSessionId());
   controller->SetParam2(srcCoroId);
 
@@ -89,7 +89,7 @@ void RpcMgr::HandleRpcRsp(LLBC_Packet &packet) {
   LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "resume coro:%d, packet:%s",
        dstCoroId, packet.ToString().c_str());
 
-  auto coroInfo = s_rpcCoroMgr->GetRpcCoroInfo(int(dstCoroId));
+  auto coroInfo = s_RpcCoroMgr->GetRpcCoroInfo(int(dstCoroId));
   if (!coroInfo) {
     LLOG(nullptr, nullptr, LLBC_LogLevel::Error, "coro not found, coroId:%d",
          dstCoroId);
@@ -101,7 +101,7 @@ void RpcMgr::HandleRpcRsp(LLBC_Packet &packet) {
   if (packet.Read(errText) != LLBC_OK)
   {
     LLOG(nullptr, nullptr, LLBC_LogLevel::Error, "read packet failed");
-    return;
+    coroInfo->GetController()->SetFailed("read packet  failed");
   }
 
   if (coroInfo->DecodeRsp(&packet)  != LLBC_OK)
@@ -115,12 +115,12 @@ void RpcMgr::HandleRpcRsp(LLBC_Packet &packet) {
     coroInfo->GetController()->SetFailed(errText);
   }
 
-  s_rpcCoroMgr->ResumeRpcCoro(int(dstCoroId));
+  s_RpcCoroMgr->ResumeRpcCoro(int(dstCoroId));
   LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "resume coro:%d finished, packet:%s, errText:%s",
        dstCoroId, packet.ToString().c_str(), errText.c_str());
 }
 
-void RpcMgr::OnRpcDone(MyController *controller, google::protobuf::Message *rsp) {
+void RpcMgr::OnRpcDone(RpcController *controller, google::protobuf::Message *rsp) {
   LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "OnRpcDone, rsp:%s",
        rsp->DebugString().c_str());
 

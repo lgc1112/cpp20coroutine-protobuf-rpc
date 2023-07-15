@@ -22,18 +22,21 @@ void RpcChannel::CallMethod(const ::google::protobuf::MethodDescriptor *method,
                             ::google::protobuf::Closure *) {
 
   LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "CallMethod!");
+  // 创建并填充发送包
   LLBC_Packet *sendPacket = LLBC_GetObjectFromUnsafetyPool<LLBC_Packet>();
   sendPacket->SetHeader(0, RpcOpCode::RpcReq, 0);
   sendPacket->SetSessionId(sessionId_);
   sendPacket->Write(method->service()->name());
   sendPacket->Write(method->name());
 
-  // 填充原始协程id
-  auto mController = static_cast<MyController *>(controller);
-  auto coroId = s_rpcCoroMgr->AddRpcCoro(mController, response);
+  // Controller信息和rsp并创建协程信息
+  auto coroId = s_RpcCoroMgr->AddRpcCoroInfo(static_cast<RpcController *>(controller), response);
+
+  // 填充协程Id和请求包
   sendPacket->Write(coroId);
   sendPacket->Write(*request);
 
+  // 通过连接管理器发送包
   connMgr_->PushPacket(sendPacket);
   LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "Waiting!");
 }

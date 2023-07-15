@@ -2,7 +2,7 @@
  * @Author: regangcli regangcli@tencent.com
  * @Date: 2023-07-09 17:19:49
  * @LastEditors: regangcli regangcli@tencent.com
- * @LastEditTime: 2023-07-15 11:29:56
+ * @LastEditTime: 2023-07-16 02:01:24
  * @FilePath: /projects/newRpc/rpc-demo/src/server/server.cpp
  */
 #include "conn_mgr.h"
@@ -43,25 +43,29 @@ int main() {
   
   LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "Hello Server!");
 
-  ConnMgr *connMgr = s_ConnMgr;
-  connMgr->Init();
+  // 初始化rpc协程管理器
+  s_ConnMgr->Init();
 
-  // 启动rpc服务
-  if (connMgr->StartRpcService("127.0.0.1", 6688) != LLBC_OK) {
+  // 启动rpc监听服务
+  if (s_ConnMgr->StartRpcService("127.0.0.1", 6688) != LLBC_OK) {
     LLOG(nullptr, nullptr, LLBC_LogLevel::Trace,
          "connMgr StartRpcService Fail");
     return -1;
   }
 
-  RpcMgr serviceMgr(connMgr);
+  // 添加rpc服务
+  RpcMgr serviceMgr(s_ConnMgr);
   MyEchoService echoService;
   serviceMgr.AddService(&echoService);
 
-  // 死循环处理rpc请求
+  // 主循环
   while (!stop) {
-    connMgr->Tick();
-    s_rpcCoroMgr->Update();
-    LLBC_Sleep(1);
+    // 更新协程管理器，处理超时协程
+    s_RpcCoroMgr->Update(); 
+    // 更新连接管理器，处理接收到的rpc req和rsp
+    auto isBusy = s_ConnMgr->Tick();
+    if (!isBusy) 
+      LLBC_Sleep(1);
   }
 
   LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "server Stop");

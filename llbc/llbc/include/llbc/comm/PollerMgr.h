@@ -175,7 +175,7 @@ private:
     /**
      * Get address info from given ip and port.
      */
-    static int GetAddr(const char *ip, uint16 port, LLBC_SockAddr_IN &addr);
+    static int GetHandle(const char *ip, uint16 port, LLBC_SockAddr_IN &addr);
 
 private:
     /**

@@ -45,8 +45,8 @@ void Call(void* parentCoro) {
 
     std::cout << "CallMeathod handle:" << parentCoro << std::endl;
     
-    s_rpcCoroMgr->AddRpcCoro(parentCoro, &rsp);
-    // s_rpcCoroMgr->CreateRpcCoro(parentCoro, &rsp);
+    s_RpcCoroMgr->AddRpcCoroInfo(parentCoro, &rsp);
+    // s_RpcCoroMgr->CreateRpcCoro(parentCoro, &rsp);
 }
 
 
@@ -63,7 +63,7 @@ int main2() {
     CallMeathod();
     {
         std::cout << "resume1" << std::endl;
-        s_rpcCoroMgr->ResumeRpcCoro(1);
+        s_RpcCoroMgr->ResumeRpcCoro(1);
         std::cout << "Coroutine with id " << 1 << " canceled" << std::endl;
     }
     return 0;

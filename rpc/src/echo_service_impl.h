@@ -8,7 +8,7 @@
  */
 #pragma once
 #include "echo.pb.h"
-class MyController;
+class RpcController;
 class MyEchoService : public echo::EchoService {
 public:
   void Echo(::google::protobuf::RpcController *controller,

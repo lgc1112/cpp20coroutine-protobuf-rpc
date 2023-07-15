@@ -62,7 +62,7 @@ int main() {
   // 死循环处理rpc请求
   while (!stop) {
     connMgr->Tick();
-    s_rpcCoroMgr->Update();
+    s_RpcCoroMgr->Update();
     LLBC_Sleep(1);
   }
 

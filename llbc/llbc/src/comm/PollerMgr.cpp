@@ -191,7 +191,7 @@ void LLBC_PollerMgr::Finalize()
 int LLBC_PollerMgr::Listen(const char *ip, uint16 port, LLBC_IProtocolFactory *protoFactory, const LLBC_SessionOpts &sessionOpts)
 {
     LLBC_SockAddr_IN local;
-    if (This::GetAddr(ip, port, local) != LLBC_OK)
+    if (This::GetHandle(ip, port, local) != LLBC_OK)
         return 0;
 
     // Create socket and listen.
@@ -231,7 +231,7 @@ int LLBC_PollerMgr::Listen(const char *ip, uint16 port, LLBC_IProtocolFactory *p
 int LLBC_PollerMgr::Connect(const char *ip, uint16 port, LLBC_IProtocolFactory *protoFactory, const LLBC_SessionOpts &sessionOpts)
 {
     LLBC_SockAddr_IN peer;
-    if (This::GetAddr(ip, port, peer) != LLBC_OK)
+    if (This::GetHandle(ip, port, peer) != LLBC_OK)
         return 0;
 
     // Create socket and connect.
@@ -272,7 +272,7 @@ int LLBC_PollerMgr::AsyncConn(const char *ip,
                               const LLBC_SessionOpts &sessionOpts)
 {
     LLBC_SockAddr_IN peer;
-    if (This::GetAddr(ip, port, peer) != LLBC_OK)
+    if (This::GetHandle(ip, port, peer) != LLBC_OK)
     {
         pendingSessionId = 0;
         return LLBC_FAILED;
@@ -339,7 +339,7 @@ void LLBC_PollerMgr::OnPollerStop(int id)
     _pollerLock.Unlock();
 }
 
-int LLBC_PollerMgr::GetAddr(const char *ip, uint16 port, LLBC_SockAddr_IN &addr)
+int LLBC_PollerMgr::GetHandle(const char *ip, uint16 port, LLBC_SockAddr_IN &addr)
 {
     if (LLBC_IsIPv4Addr(ip))
     {
