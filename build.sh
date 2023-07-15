@@ -6,7 +6,7 @@
  # @edit: regangcli
  # @brief: 
 ### 
-set -x
+# set -x
 
 PROJ_ROOT="$(cd "`dirname "$0"`" && pwd)"
 PROTO_PATH="${PROJ_ROOT}/protobuf-3.20.0"
@@ -18,33 +18,63 @@ LLBC_PATH="${PROJ_ROOT}/llbc"
 RPC_PATH="${PROJ_ROOT}/rpc"
 BUILD_PATH="./build/"
 
-# build protobuf lib script
-if [[ ${1} == "proto" ]]; then 
-    echo "build proto"
+
+# build protobuf lib function
+build_protobuf() {
+    echo "Building protobuf"
     rm -fr ${BUILD_PATH}
     cd $PROTO_PATH
     autoreconf -f -i
     ./configure
     make -j15
-    echo "build proto done"
-    exit 0
-fi
+    echo "Building protobuf done"
+}
 
-
-if [[ ${1} == "llbc" ]]; then 
+# build llbc lib function
+build_llbc() {
+    echo "Building llbc"
     cd $LLBC_PATH
     make core_lib -j15
-    echo "build llbc done"
-    exit 0
-fi
-# # build llbc lib script
-# # cd $LLBC_PATH
-# # make coro_lib
-# # cd -
+    echo "Building llbc done"
+}
 
-# gen pb
-# export LD_LIBRARY_PATH="${PROTO_LIB_PATH}:${LD_LIBRARY_PATH}"
-# (cd $RPC_PATH/pb && $PROTOC_PATH  *.proto --cpp_out=. )
+# build rpc function
+build_rpc() {
+    echo "Building rpc"
+    # gen pb
+    export LD_LIBRARY_PATH="${PROTO_LIB_PATH}:${LD_LIBRARY_PATH}"
+    (cd $RPC_PATH/pb && $PROTOC_PATH  *.proto --cpp_out=. )
+
+    mkdir -p ${BUILD_PATH} && cd ${BUILD_PATH}
+    cmake -DCMAKE_BUILD_TYPE=Debug .. && make VERBOSE=1 -j15
+    echo "Building llbc done"
+}
+
+re_build_rpc() {
+    echo "Building all rpc"
+    rm -fr ${BUILD_PATH}
+    # build_protobuf
+    # build_llbc
+    build_rpc
+}
+
+# 根据参数调用相应的函数
+if [[ ${1} == "proto" ]]; then 
+    build_protobuf
+    exit 0
+elif [[ ${1} == "llbc" ]]; then 
+    build_llbc
+    exit 0
+elif [[ ${1} == "rebuild" ]]; then 
+    re_build_rpc
+    exit 0
+elif [[ ! -n "$1" ]]; then 
+    build_rpc
+    exit 0
+else 
+    echo "Usage: $0 |[proto|llbc|rebuild]"
+    exit 1
+fi
 
 # # compile rpc
 # target=${1}
@@ -57,5 +87,3 @@ fi
 # mkdir -p ${BUILD_PATH} && cd ${BUILD_PATH}
 # cmake -DCMAKE_BUILD_TYPE=Debug .. && make VERBOSE=1 -j12
 
-# pkill server
-# ./server
