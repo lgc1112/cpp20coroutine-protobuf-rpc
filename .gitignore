@@ -2,7 +2,6 @@ protobuf-3.20.0
 llbc
 build
 rpc/bin
-rpc/log
 rpc/pb/*.pb.cc
 rpc/pb/*.pb.h
 log/client/client.230715.log

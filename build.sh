@@ -45,7 +45,6 @@ build_llbc() {
 build_rpc() {
     echo "Building rpc"
     # gen pb
-    export LD_LIBRARY_PATH="${PROTO_LIB_PATH}:${LD_LIBRARY_PATH}"
     (cd $RPC_PATH/pb && $PROTOC_PATH  *.proto --cpp_out=. )
 
     mkdir -p ${BUILD_PATH} && cd ${BUILD_PATH}
