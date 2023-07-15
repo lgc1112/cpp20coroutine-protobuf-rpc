@@ -18,34 +18,38 @@ LLBC_PATH="${PROJ_ROOT}/llbc"
 RPC_PATH="${PROJ_ROOT}/rpc"
 BUILD_PATH="./build/"
 
-# build protobuf lib
-cd $PROTO_PATH
-autoreconf -f -i
-./configure
-make -j12
-cd -
+# build protobuf lib script
 
+if [[ ${1} == "proto" ]]; then 
+    echo "build proto"
+    rm -fr ${BUILD_PATH}
+    cd $PROTO_PATH
+    autoreconf -f -i
+    ./configure
+    make -j12
+    cd -
+    exit 0
+fi
 
-
-# # build llbc lib
+# # build llbc lib script
 # # cd $LLBC_PATH
 # # make coro_lib
 # # cd -
 
-# # build rpc
-# target=${1-"use_cache"}
+# gen pb
+# export LD_LIBRARY_PATH="${PROTO_LIB_PATH}:${LD_LIBRARY_PATH}"
+# (cd $RPC_PATH/pb && $PROTOC_PATH  *.proto --cpp_out=. )
+
+# # compile rpc
+# target=${1}
 # if [[ "$target" == "all" ]]; then 
 #     echo "build all"
 #     rm -fr ${BUILD_PATH}
 # else
 #     echo "build"
 # fi
-# export LD_LIBRARY_PATH="${PROTO_LIB_PATH}:${LD_LIBRARY_PATH}"
-# (cd $RPC_PATH/pb && $PROTOC_PATH  *.proto --cpp_out=. )
-# # rm -fr ${build_dir}
 # mkdir -p ${BUILD_PATH} && cd ${BUILD_PATH}
-
 # cmake -DCMAKE_BUILD_TYPE=Debug .. && make VERBOSE=1 -j12
 
-# # pkill server
-# # ./server
+# pkill server
+# ./server
