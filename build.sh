@@ -24,7 +24,7 @@ build_protobuf() {
     echo "Building protobuf"
     rm -fr ${BUILD_PATH}
     cd $PROTO_PATH
-    # autoreconf -f -i
+    autoreconf -f -i
     ./configure
     make -j15
     echo "Building protobuf done"
