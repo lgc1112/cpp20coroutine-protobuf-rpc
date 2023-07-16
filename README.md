@@ -47,7 +47,7 @@ RpcCoro CallMeathod() {
   echo::EchoResponse rsp;
   
   // 3. Get current coroutine handle and construct proto controller
-  MyController cntl(co_await GetHandleAwaiter{});
+  RpcController cntl(co_await GetHandleAwaiter{});
   
   // 4. Construct proto rpc stub and call its generated rpc method Echo, then suspend coroutine waiting for return
   echo::EchoService_Stub stub(channel);
