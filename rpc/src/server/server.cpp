@@ -2,7 +2,7 @@
  * @Author: regangcli regangcli@tencent.com
  * @Date: 2023-07-09 17:19:49
  * @LastEditors: regangcli regangcli@tencent.com
- * @LastEditTime: 2023-07-16 02:01:24
+ * @LastEditTime: 2023-07-16 14:31:09
  * @FilePath: /projects/newRpc/rpc-demo/src/server/server.cpp
  */
 #include "conn_mgr.h"
@@ -29,6 +29,7 @@ int main() {
   // 初始化llbc库
   LLBC_Startup();
   LLBC_Defer(LLBC_Cleanup());
+  LLBC_HookProcessCrash();
 
   // 初始化日志
   const std::string path = __FILE__;
@@ -73,4 +74,3 @@ int main() {
   return 0;
 }
 
-/* vim: set ts=4 sw=4 sts=4 tw=100 */

@@ -20,7 +20,8 @@ void RpcChannel::CallMethod(const ::google::protobuf::MethodDescriptor *method,
                             const ::google::protobuf::Message *request,
                             ::google::protobuf::Message *response,
                             ::google::protobuf::Closure *) {
-
+  response->Clear();
+  
   LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "CallMethod!");
   // 创建并填充发送包
   LLBC_Packet *sendPacket = LLBC_GetObjectFromUnsafetyPool<LLBC_Packet>();

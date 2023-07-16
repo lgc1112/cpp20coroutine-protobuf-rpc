@@ -94,7 +94,7 @@ int main() {
   echo::EchoService_Stub stub(channel);
   RpcMgr serviceMgr(s_ConnMgr);
 
-  // 死循环处理 rpc 请求
+  // 主循环处理 rpc 请求
   int count = 0;
   while (!stop) {
     // 更新协程管理器，处理超时协程
@@ -104,7 +104,7 @@ int main() {
     if (!isBusy) {
       LLBC_Sleep(1);
       ++count;
-      // 满1s就创建一个新协协程发一个请求包
+      // 满1s就创建一个新协程发请求包
       if (count == 1000) {
         count = 0;
         LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "CallMeathod Start");

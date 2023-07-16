@@ -19,7 +19,7 @@ void MyEchoService::Echo(::google::protobuf::RpcController *controller,
                          ::google::protobuf::Closure *done) {
   LLOG(nullptr, nullptr, LLBC_LogLevel::Info, "received, msg:%s",
        request->msg().c_str());
-  // LLBC_Sleep(5000);
+  // LLBC_Sleep(5000); timeout test
   response->set_msg(std::string(" Echo >>>>>>> ") + request->msg());
   done->Run();
 }
