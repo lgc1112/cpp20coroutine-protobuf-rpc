@@ -2,7 +2,7 @@
 cpp20coroutine-protobuf-rpc is a lightweight, simple, and easy-to-understand high-performance synchronous RPC implementation framework based on C++20 stackless coroutines and protobuf. With a small amount of code, it implements all the basic features of RPC, making it suitable for learning or as a basis for stackless coroutine-based RPC development. This framework creates only one coroutine for each RPC call, avoiding the creation of multiple layers and improving performance.
 
 # Installation
-The project depends on two third-party libraries, llbc and protobuf. Since using git submodule is inconvenient, the third-party library code has been directly committed to the repository source code. Users can also download it from the corresponding repository. Here are the installation steps for the project:
+The project depends on two third-party libraries, [llbc](https://github.com/lailongwei/llbc) and [protobuf](https://github.com/protocolbuffers/protobuf). Since using git submodule is inconvenient, the third-party library code has been directly committed to the repository source code. Users can also download it from the corresponding repository. Here are the installation steps for the project:
 
 - Clone the repository: git clone https://github.com/lgc1112/cppcoro-protobuf-rpc.git
 - Enter the repository directory: cd cppcoro-protobuf-rpc
