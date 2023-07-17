@@ -9,6 +9,7 @@ The project depends on two third-party libraries, [llbc](https://github.com/lail
 - Compile the llbc library: ./build.sh llbc
 - Compile the protobuf-3.20.0 library: ./build.sh proto
 - Compile the RPC code: ./build.sh
+
 To run the tests:
 
 - Run the server: ./rpc/bin/server
