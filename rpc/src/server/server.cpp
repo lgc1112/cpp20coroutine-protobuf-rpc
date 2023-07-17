@@ -1,8 +1,8 @@
 /*
- * @Author: ligengchao ligengchao@tencent.com
+ * @Author: ligengchao ligengchao@pku.edu.cn
  * @Date: 2023-07-09 17:19:49
- * @LastEditors: ligengchao ligengchao@tencent.com
- * @LastEditTime: 2023-07-16 14:31:09
+ * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2023-07-17 21:48:16
  * @FilePath: /projects/newRpc/rpc-demo/src/server/server.cpp
  */
 #include "conn_mgr.h"

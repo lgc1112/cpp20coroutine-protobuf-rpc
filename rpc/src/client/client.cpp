@@ -1,3 +1,12 @@
+/*
+ * @Author: ligengchao ligengchao@pku.edu.cn
+ * @Date: 2023-07-09 14:40:28
+ * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2023-07-17 21:49:01
+ * @FilePath: /projects/newRpc/rpc-demo/src/client/client.cpp
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置
+ * 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ */
 #include "conn_mgr.h"
 #include "echo.pb.h"
 #include "echo_service_impl.h"
