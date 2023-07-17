@@ -1,7 +1,7 @@
 /*
- * @Author: regangcli regangcli@tencent.com
+ * @Author: ligengchao ligengchao@tencent.com
  * @Date: 2023-07-09 14:40:28
- * @LastEditors: regangcli regangcli@tencent.com
+ * @LastEditors: ligengchao ligengchao@tencent.com
  * @LastEditTime: 2023-07-15 20:56:56
  * @FilePath: /projects/newRpc/rpc-demo/src/server/server2.cpp
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置

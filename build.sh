@@ -1,9 +1,8 @@
 ###
  # @file: 
- # @Author: regangcli
- # @copyright: Tencent Technology (Shenzhen) Company Limited
+ # @Author: ligengchao
  # @Date: 2023-06-15 16:49:43
- # @edit: regangcli
+ # @edit: ligengchao
  # @brief: 
 ### 
 # set -x

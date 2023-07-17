@@ -1,9 +1,9 @@
 /*
  * @file:
- * @Author: regangcli
- * @copyright: Tencent Technology (Shenzhen) Company Limited
+ * @Author: ligengchao
+
  * @Date: 2023-06-21 15:47:04
- * @edit: regangcli
+ * @edit: ligengchao
  * @brief:
  */
 #include "echo_service_impl.h"

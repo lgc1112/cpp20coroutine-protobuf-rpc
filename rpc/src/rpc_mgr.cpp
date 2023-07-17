@@ -1,9 +1,9 @@
 /*
  * @file:
- * @Author: regangcli
- * @copyright: Tencent Technology (Shenzhen) Company Limited
+ * @Author: ligengchao
+
  * @Date: 2023-06-19 20:13:51
- * @edit: regangcli
+ * @edit: ligengchao
  * @brief:
  */
 #include "rpc_mgr.h"
