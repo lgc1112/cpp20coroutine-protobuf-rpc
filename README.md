@@ -34,6 +34,9 @@ service EchoService {
     rpc RelayEcho(EchoRequest) returns (EchoResponse);
 }
 ```
+In this case, the Echo method is mainly used to send RPC requests to the server and receive direct responses; RelayEcho is mainly used to send requests to server 1, which then sends another nested RPC request to server 2, and finally, the response is sent back to the client. As shown in the diagram below.
+![image](https://github.com/lgc1112/cpp20coroutine-protobuf-rpc/assets/40829436/829a3448-0335-4766-81c6-f461714175c5)
+
 ## Client RPC call example
 ```
 // Coroutine method definition
@@ -67,9 +70,12 @@ RpcCoro CallMeathod() {
   co_return;
 }
 ```
-The detailed process and introduction of the code are shown above. In step 4, the rpc call is completed by calling the protobuf-generated stub.Echo method. During the internal rpc call process, no additional coroutines will be generated. The stub.Echo method only completes the data packet sending and records the context information and returns. After returning, it suspends and waits at co_await std::suspend_always{} until the rpc return packet is received or a timeout error occurs before being awakened. The entire Rpc call process only creates this one coroutine.
+The detailed code flow and client sequence diagram are shown above. In step 4, the protobuf-generated stub.Echo method is called to complete the RPC invocation. No additional coroutines will be created during the internal RPC invocation process. The stub.Echo method simply sends the data packet and records the context information before returning. After returning, it suspends at co_await std::suspend_always{} and waits until the RPC response packet is received or a timeout error occurs before being awakened. The entire RPC invocation process will only create this one RpcCoro coroutine, without any nested coroutine calls.
+
+![image](https://github.com/lgc1112/cpp20coroutine-protobuf-rpc/assets/40829436/d9483727-15b8-4bbc-966a-19ad9f592ea0)
 
 ## Server service example:
+Server-side RPC service code, implementing the Echo and RelayEcho methods:
 ```
 // Inherit and implement the pb-generated echo::EchoService, override the rpc methods Echo and RelayEcho
 class MyEchoService : public echo::EchoService {
@@ -138,6 +144,11 @@ RpcCoro InnerCallMeathod(::google::protobuf::RpcController *controller,
   co_return;
 }
 ```
+Server-side RPC service process, including Echo and RelayEcho methods:
+![image](https://github.com/lgc1112/cpp20coroutine-protobuf-rpc/assets/40829436/62013744-74b0-48f8-a551-12835ab3c4db)
+
+The Echo method returns directly after being processed in the main coroutine, while the RelayEcho method, which requires a nested RPC call, creates a new thread internally to complete the call.
+
 ##  Client log print results
 ```
 Recv Echo Rsp, status:success, rsp: Echo >>>>>>> hello, Echo.
