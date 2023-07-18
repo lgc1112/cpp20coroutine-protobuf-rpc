@@ -78,7 +78,7 @@ void RpcMgr::HandleRpcReq(LLBC_Packet &packet) {
 }
 
 void RpcMgr::HandleRpcRsp(LLBC_Packet &packet) {
-  // 协程方案, 唤醒源协程处理rpc回复
+  // 读取源协程Id
   int dstCoroId = 0;
   if (packet.Read(dstCoroId)  != LLBC_OK)
   {
@@ -89,6 +89,7 @@ void RpcMgr::HandleRpcRsp(LLBC_Packet &packet) {
   LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "resume coro:%d, packet:%s",
        dstCoroId, packet.ToString().c_str());
 
+  // 获取协程信息
   auto coroInfo = s_RpcCoroMgr->GetRpcCoroInfo(int(dstCoroId));
   if (!coroInfo) {
     LLOG(nullptr, nullptr, LLBC_LogLevel::Error, "coro not found, coroId:%d",
@@ -96,7 +97,7 @@ void RpcMgr::HandleRpcRsp(LLBC_Packet &packet) {
     return;
   }
 
-
+  // 读取错误描述
   std::string errText;
   if (packet.Read(errText) != LLBC_OK)
   {
@@ -104,6 +105,7 @@ void RpcMgr::HandleRpcRsp(LLBC_Packet &packet) {
     coroInfo->GetController()->SetFailed("read packet  failed");
   }
 
+  // 解码packet并填充rsp
   if (coroInfo->DecodeRsp(&packet)  != LLBC_OK)
   {
     LLOG(nullptr, nullptr, LLBC_LogLevel::Error, "decode rsp failed, coroId:%d",
@@ -111,10 +113,12 @@ void RpcMgr::HandleRpcRsp(LLBC_Packet &packet) {
     coroInfo->GetController()->SetFailed("decode rsp failed");
   }
   
+  // 填充错误状态
   if (!errText.empty()) {
     coroInfo->GetController()->SetFailed(errText);
   }
 
+  // 恢复对应协程处理
   s_RpcCoroMgr->ResumeRpcCoro(int(dstCoroId));
   LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "resume coro:%d finished, packet:%s, errText:%s",
        dstCoroId, packet.ToString().c_str(), errText.c_str());

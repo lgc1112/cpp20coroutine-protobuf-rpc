@@ -29,6 +29,7 @@ void ConnComp::OnSessionCreate(const LLBC_SessionInfo &sessionInfo) {
 void ConnComp::OnSessionDestroy(const LLBC_SessionDestroyInfo &destroyInfo) {
   LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "Session Destroy, info: %s",
        destroyInfo.ToString().c_str());
+  // Todo：此处为网络中断时，通信线程调用，需要将消息放入recvQueue_，由主线程处理
   s_ConnMgr->CloseSession(destroyInfo.GetSessionId());
 }
 
@@ -109,7 +110,7 @@ int ConnMgr::StartRpcService(const char *ip, int port) {
        ip, port);
   int serverSessionId_ = svc_->Listen(ip, port);
   if (serverSessionId_ == 0) {
-    LLOG(nullptr, nullptr, LLBC_LogLevel::Trace,
+    LLOG(nullptr, nullptr, LLBC_LogLevel::Error,
          "Create session failed, reason: %s", LLBC_FormatLastError());
     return LLBC_FAILED;
   }
@@ -128,7 +129,7 @@ RpcChannel *ConnMgr::GetRpcChannel(const char *ip, int port) {
 
   auto sessionId = svc_->Connect(ip, port);
   if (sessionId == 0) {
-    LLOG(nullptr, nullptr, LLBC_LogLevel::Trace,
+    LLOG(nullptr, nullptr, LLBC_LogLevel::Error,
          "Create session failed, reason: %s", LLBC_FormatLastError());
     return nullptr;
   }
@@ -143,7 +144,7 @@ RpcChannel *ConnMgr::GetRpcChannel(const char *ip, int port) {
 int ConnMgr::CloseSession(int sessionId) {
   auto it = session2Addr_.find(sessionId);
   if (it == session2Addr_.end()) {
-    LLOG(nullptr, nullptr, LLBC_LogLevel::Trace,
+    LLOG(nullptr, nullptr, LLBC_LogLevel::Error,
          "CloseSession, sessionId:%d not found", sessionId);
     return LLBC_FAILED;
   }
