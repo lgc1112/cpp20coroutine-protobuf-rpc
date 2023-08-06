@@ -8,7 +8,7 @@ link_directories(
     ${ROOT_DIR}/llbc/output/gmake/release64
     ${CMAKE_CURRENT_SOURCE_DIR}/build)
 
-SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g -ggdb")
+# SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g -ggdb")
 file(GLOB PB_FILES "${CMAKE_CURRENT_SOURCE_DIR}/pb/*.cc")
 file(GLOB SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 

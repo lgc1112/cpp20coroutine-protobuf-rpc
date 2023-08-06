@@ -49,7 +49,9 @@ int RpcCoroMgr::AddRpcCoroInfo(RpcController *controller,
   int id = maxCoroId++;
   auto coroInfo = new RpcCoroInfo(id, this, controller, rsp);
   coroInfos_[id] = coroInfo;
+// #ifndef EnableRpcPerfStat 
   coroTimeHeap_.Insert(coroInfo);
+// #endif
   return id;
 }
 
@@ -76,8 +78,9 @@ void RpcCoroMgr::ResumeRpcCoro(int coroId) {
       coroInfo->GetHandle())
       .resume();
   LOG_TRACE("parentCoro resumed");
-
+// #ifndef EnableRpcPerfStat 
   coroTimeHeap_.DeleteElem(coroInfo);
+// #endif
   delete coroInfo;
   coroInfos_.erase(it);
 
@@ -85,6 +88,7 @@ void RpcCoroMgr::ResumeRpcCoro(int coroId) {
 }
 
 void RpcCoroMgr::Update() {
+// #ifndef EnableRpcPerfStat 
   auto now = LLBC_GetMilliSeconds();
   // 有超时的协程，调用超时处理函数
   while (!coroTimeHeap_.IsEmpty() &&
@@ -93,4 +97,5 @@ void RpcCoroMgr::Update() {
     coroInfo->OnCoroTimeout();
     // coroTimeHeap_.DeleteTop();
   }
+// #endif
 }

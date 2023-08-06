@@ -10,7 +10,6 @@
 
 #include "llbc.h"
 #include "rpc_def.h"
-
 using namespace llbc;
 
 class RpcChannel;
@@ -31,6 +30,8 @@ enum ServerType {
 #define Server2Ip "127.0.0.1"
 #define Server2Port "6699"
 
+#define SendQueueSize 1024 * 1024
+#define RecvQueueSize 1024 * 1024
 // 简单双线程无锁循环队列, 只提供两个方法, Push和Pop分别只能由一个线程调用
 template <typename T, int QueueCapacity> class LockFreeQueue {
 public:
@@ -100,6 +101,8 @@ public:
   // 取出接收包
   LLBC_Packet *PopPacket() { return recvQueue_.Pop(); }
 
+  int GetSendQueueSize() { return sendQueue_.GetSize(); }
+
 public:
   virtual bool OnInit(bool &initFinished);
   virtual void OnDestroy(bool &destroyFinished);
@@ -118,8 +121,8 @@ public:
   void OnRecvPacket(LLBC_Packet &packet);
 
 private:
-  LockFreeQueue<LLBC_Packet, 1024> sendQueue_;
-  LockFreeQueue<LLBC_Packet, 1024> recvQueue_;
+  LockFreeQueue<LLBC_Packet, SendQueueSize> sendQueue_;
+  LockFreeQueue<LLBC_Packet, RecvQueueSize> recvQueue_;
 };
 
 // 连接管理器
@@ -142,6 +145,8 @@ public:
   int PushPacket(LLBC_Packet *sendPacket) {
     return comp_->PushPacket(sendPacket);
   }
+  // 获取发送队列大小
+  int GetSendQueueSize() { return comp_->GetSendQueueSize(); }
   // 取出接收包
   LLBC_Packet *PopPacket() { return comp_->PopPacket(); }
   // 获取服务器SessionId
@@ -167,3 +172,4 @@ private:
 };
 
 #define s_ConnMgr ::llbc::LLBC_Singleton<ConnMgr>::Instance()
+

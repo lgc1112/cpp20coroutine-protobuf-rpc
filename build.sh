@@ -47,7 +47,8 @@ build_rpc() {
     (cd $RPC_PATH/pb && $PROTOC_PATH  *.proto --cpp_out=. )
 
     mkdir -p ${BUILD_PATH} && cd ${BUILD_PATH}
-    cmake -DCMAKE_BUILD_TYPE=Debug .. && make VERBOSE=1 -j15
+    # cmake -DCMAKE_BUILD_TYPE=Debug .. && make VERBOSE=1 -j15
+    cmake .. && make VERBOSE=1 -j15
     echo "Building rpc done"
 }
 

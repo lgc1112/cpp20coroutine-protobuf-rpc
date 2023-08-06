@@ -13,11 +13,11 @@
 #include "rpc_coro_mgr.h"
 using namespace llbc;
 
-#ifdef EnableRpcStat
-long long rpcCallCount = 0, printTime = 0, beginRpcReqTime = 0;
-long long rpcCallTimeSum = 0;
-long long maxRpcCallTime = 0;
-long long minRpcCallTime = LLONG_MAX;
+#ifdef EnableRpcPerfStat
+static long long rpcCallCount = 0, printTime = 0, beginRpcReqTime = 0;
+static long long rpcCallTimeSum = 0;
+static long long maxRpcCallTime = 0;
+static long long minRpcCallTime = LLONG_MAX;
 #endif
 
 RpcMgr::RpcMgr(ConnMgr *connMgr) : connMgr_(connMgr) {
@@ -47,7 +47,7 @@ void RpcMgr::AddService(::google::protobuf::Service *service) {
 }
 
 void RpcMgr::HandleRpcReq(LLBC_Packet &packet) {
-#ifdef EnableRpcStat
+#ifdef EnableRpcPerfStat
   beginRpcReqTime = llbc::LLBC_GetMicroSeconds();
 #endif
 
@@ -155,7 +155,7 @@ void RpcMgr::OnRpcDone(RpcController *controller, google::protobuf::Message *rsp
   connMgr_->PushPacket(packet);
   delete controller;
 
-#ifdef EnableRpcStat
+#ifdef EnableRpcPerfStat
   long long endTime = llbc::LLBC_GetMicroSeconds();
   long long tmpTime = endTime - beginRpcReqTime;
   rpcCallTimeSum += tmpTime;
