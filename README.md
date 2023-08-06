@@ -1,5 +1,5 @@
 # Introduction
-cpp20coroutine-protobuf-rpc is a lightweight, simple, and easy-to-understand high-performance synchronous RPC implementation framework based on C++20 stackless coroutines and protobuf. With a small amount of code, it implements all the basic features of RPC, making it suitable for learning or as a basis for stackless coroutine-based RPC development. This framework creates only one coroutine for each RPC call, avoiding the creation of multiple layers and improving performance.
+cpp20coroutine-protobuf-rpc is a lightweight, simple, and easy-to-understand high-performance RPC implementation framework based on C++20 stackless coroutines and protobuf. With a small amount of code, it implements all the basic features of RPC, making it suitable for learning or as a basis for stackless coroutine-based RPC development. This framework creates only one coroutine for each RPC call, avoiding the creation of multiple layers and improving performance.
 
 # Installation
 The project depends on two third-party libraries, [llbc](https://github.com/lailongwei/llbc) and [protobuf](https://github.com/protocolbuffers/protobuf). Since using git submodule is inconvenient, the third-party library code has been directly committed to the repository source code. Users can also download it from the corresponding repository. Here are the installation steps for the project:
@@ -176,7 +176,7 @@ C++20 coroutines: There are many explanations for C++20 coroutines at present. I
 Tcp communication: For the Tcp communication part, in order to avoid reinventing the wheel, this article mainly uses a third-party library llbc to handle Tcp connection, disconnection, and exception handling. On this basis, a multi-threaded Tcp communication manager is implemented to reduce the overhead of the main thread and improve performance.
 
 # Performance Testing
-In this framework, a single RPC call in this article only involves the creation and switching of one coroutine, and there is no problem of nested coroutines at various levels. In addition, the connection management module also uses dual-threading to reduce the workload of the main thread. Therefore, theoretically, the performance of this framework is very superior.
+In this framework,  a single RPC call on the client side in this article only involves the creation and switching of one coroutine, without the issue of nested coroutines at various levels; the server side can either not create a coroutine or only create one. In addition, the connection management module uses a dual-thread approach to reduce the load on the main thread. Therefore, theoretically, this framework has excellent performance.
 
 Specific test data and results will be supplemented later. 
 
