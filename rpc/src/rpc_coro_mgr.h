@@ -18,6 +18,7 @@
 #include <memory>
 #include <stdexcept>
 #include <unordered_map>
+#include "rpc_def.h"
 
 namespace llbc {
 class LLBC_Packet;

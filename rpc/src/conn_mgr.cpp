@@ -13,28 +13,28 @@ ConnComp::ConnComp()
                      LLBC_ComponentEvents::OnUpdate) {}
 
 bool ConnComp::OnInit(bool &initFinished) {
-  LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "Service create!");
+  LOG_TRACE("Service create!");
   return true;
 }
 
 void ConnComp::OnDestroy(bool &destroyFinished) {
-  LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "Service destroy!");
+  LOG_TRACE("Service destroy!");
 }
 
 void ConnComp::OnSessionCreate(const LLBC_SessionInfo &sessionInfo) {
-  LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "Session Create: %s",
+  LOG_TRACE("Session Create: %s",
        sessionInfo.ToString().c_str());
 }
 
 void ConnComp::OnSessionDestroy(const LLBC_SessionDestroyInfo &destroyInfo) {
-  LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "Session Destroy, info: %s",
+  LOG_TRACE("Session Destroy, info: %s",
        destroyInfo.ToString().c_str());
   // Todo：此处为网络中断时，通信线程调用，需要将消息放入recvQueue_，由主线程处理
   s_ConnMgr->CloseSession(destroyInfo.GetSessionId());
 }
 
 void ConnComp::OnAsyncConnResult(const LLBC_AsyncConnResult &result) {
-  LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "Async-Conn result: %s",
+  LOG_TRACE("Async-Conn result: %s",
        result.ToString().c_str());
 }
 
@@ -45,14 +45,14 @@ void ConnComp::OnUnHandledPacket(const LLBC_Packet &packet) {
 }
 
 void ConnComp::OnProtoReport(const LLBC_ProtoReport &report) {
-  LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "Proto report: %s",
+  LOG_TRACE("Proto report: %s",
        report.ToString().c_str());
 }
 
 void ConnComp::OnUpdate() {
   auto *sendPacket = sendQueue_.Pop();
   while (sendPacket) {
-    LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "sendPacket:%s",
+    LOG_TRACE("sendPacket:%s",
          sendPacket->ToString().c_str());
     auto ret = GetService()->Send(sendPacket);
     if (ret != LLBC_OK) {
@@ -66,7 +66,7 @@ void ConnComp::OnUpdate() {
 }
 
 void ConnComp::OnRecvPacket(LLBC_Packet &packet) {
-  LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "OnRecvPacket:%s",
+  LOG_TRACE("OnRecvPacket:%s",
        packet.ToString().c_str());
   LLBC_Packet *recvPacket = LLBC_GetObjectFromUnsafetyPool<LLBC_Packet>();
   recvPacket->SetHeader(packet, packet.GetOpcode(), 0);
@@ -100,13 +100,13 @@ int ConnMgr::Init() {
   svc_->Subscribe(RpcOpCode::RpcRsp, comp_, &ConnComp::OnRecvPacket);
   svc_->SuppressCoderNotFoundWarning();
   auto ret = svc_->Start(1);
-  LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "Service start, ret: %d", ret);
+  LOG_TRACE("Service start, ret: %d", ret);
   return ret;
 }
 
 int ConnMgr::StartRpcService(const char *ip, int port) {
-  LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "ConnMgr StartRpcService");
-  LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "Server Will listening in %s:%d",
+  LOG_TRACE("ConnMgr StartRpcService");
+  LOG_TRACE("Server Will listening in %s:%d",
        ip, port);
   int serverSessionId_ = svc_->Listen(ip, port);
   if (serverSessionId_ == 0) {
@@ -152,7 +152,7 @@ int ConnMgr::CloseSession(int sessionId) {
   addr2Channel_.erase(it->second);
   session2Addr_.erase(it);
 
-  LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "CloseSession, %d", sessionId);
+  LOG_TRACE("CloseSession, %d", sessionId);
   return svc_->RemoveSession(sessionId);
 }
 
@@ -162,10 +162,10 @@ bool ConnMgr::Tick() {
   auto packet = PopPacket();
   while (packet) {
     ret = true;
-    LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "Tick");
+    LOG_TRACE("Tick");
     auto it = packetDelegs_.find(packet->GetOpcode());
     if (it == packetDelegs_.end())
-      LLOG(nullptr, nullptr, LLBC_LogLevel::Warn, "Recv Untapped opcode:%d",
+      LOG_WARN("Recv Untapped opcode:%d",
            packet->GetOpcode());
     else
       (it->second)(*packet);

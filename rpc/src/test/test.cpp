@@ -53,7 +53,7 @@ void Call(void* parentCoro) {
 RpcCoro CallMeathod() {
     void *handle = co_await GetHandleAwaiter{}; // Specify the type explicitly
     Call(handle);
-    LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "call ing");
+    LOG_TRACE("call ing");
     co_await std::suspend_always{};
     std::cout << "CallMeathod return" << std::endl;
     co_return;

@@ -22,7 +22,7 @@ void RpcChannel::CallMethod(const ::google::protobuf::MethodDescriptor *method,
                             ::google::protobuf::Closure *) {
   response->Clear();
   
-  LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "CallMethod!");
+  LOG_TRACE("CallMethod!");
   // 创建并填充发送包
   LLBC_Packet *sendPacket = LLBC_GetObjectFromUnsafetyPool<LLBC_Packet>();
   sendPacket->SetHeader(0, RpcOpCode::RpcReq, 0);
@@ -39,5 +39,5 @@ void RpcChannel::CallMethod(const ::google::protobuf::MethodDescriptor *method,
 
   // 通过连接管理器发送包
   connMgr_->PushPacket(sendPacket);
-  LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "Waiting!");
+  LOG_TRACE("Waiting!");
 }

@@ -12,6 +12,7 @@
 #include "google/protobuf/service.h"
 #include "google/protobuf/stubs/common.h"
 #include <map>
+#include "rpc_def.h"
 
 namespace llbc {
 class LLBC_Packet;

@@ -45,22 +45,22 @@ void RpcMgr::HandleRpcReq(LLBC_Packet &packet) {
   std::string serviceName, methodName;
   if (packet.Read(serviceName) != LLBC_OK ||
       packet.Read(methodName) != LLBC_OK || packet.Read(srcCoroId) != LLBC_OK) {
-    LLOG(nullptr, nullptr, LLBC_LogLevel::Error, "read packet failed");
+    LOG_ERROR("read packet failed");
     return;
   }
 
   auto service = _services[serviceName].service;
   auto md = _services[serviceName].mds[methodName];
-  LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "recv service_name:%s",
+  LOG_TRACE("recv service_name:%s",
        serviceName.c_str());
-  LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "recv method_name:%s",
+  LOG_TRACE("recv method_name:%s",
        methodName.c_str());
-  LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "srcCoroId:%d", srcCoroId);
+  LOG_TRACE("srcCoroId:%d", srcCoroId);
 
   // 解析req&创建rsp
   auto req = service->GetRequestPrototype(md).New();
   if (packet.Read(*req) != LLBC_OK) {
-    LLOG(nullptr, nullptr, LLBC_LogLevel::Error, "read packet failed");
+    LOG_ERROR("read packet failed");
     delete req;
     return;
   }
@@ -82,17 +82,17 @@ void RpcMgr::HandleRpcRsp(LLBC_Packet &packet) {
   int dstCoroId = 0;
   if (packet.Read(dstCoroId)  != LLBC_OK)
   {
-    LLOG(nullptr, nullptr, LLBC_LogLevel::Error, "read packet failed");
+    LOG_ERROR("read packet failed");
     return;
   }
 
-  LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "resume coro:%d, packet:%s",
+  LOG_TRACE("resume coro:%d, packet:%s",
        dstCoroId, packet.ToString().c_str());
 
   // 获取协程信息
   auto coroInfo = s_RpcCoroMgr->GetRpcCoroInfo(int(dstCoroId));
   if (!coroInfo) {
-    LLOG(nullptr, nullptr, LLBC_LogLevel::Error, "coro not found, coroId:%d",
+    LOG_ERROR("coro not found, coroId:%d",
          dstCoroId);
     return;
   }
@@ -101,14 +101,14 @@ void RpcMgr::HandleRpcRsp(LLBC_Packet &packet) {
   std::string errText;
   if (packet.Read(errText) != LLBC_OK)
   {
-    LLOG(nullptr, nullptr, LLBC_LogLevel::Error, "read packet failed");
+    LOG_ERROR("read packet failed");
     coroInfo->GetController()->SetFailed("read packet  failed");
   }
 
   // 解码packet并填充rsp
   if (coroInfo->DecodeRsp(&packet)  != LLBC_OK)
   {
-    LLOG(nullptr, nullptr, LLBC_LogLevel::Error, "decode rsp failed, coroId:%d",
+    LOG_ERROR("decode rsp failed, coroId:%d",
          dstCoroId);
     coroInfo->GetController()->SetFailed("decode rsp failed");
   }
@@ -120,17 +120,17 @@ void RpcMgr::HandleRpcRsp(LLBC_Packet &packet) {
 
   // 恢复对应协程处理
   s_RpcCoroMgr->ResumeRpcCoro(int(dstCoroId));
-  LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "resume coro:%d finished, packet:%s, errText:%s",
+  LOG_TRACE("resume coro:%d finished, packet:%s, errText:%s",
        dstCoroId, packet.ToString().c_str(), errText.c_str());
 }
 
 void RpcMgr::OnRpcDone(RpcController *controller, google::protobuf::Message *rsp) {
-  LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "OnRpcDone, rsp:%s",
+  LOG_TRACE("OnRpcDone, rsp:%s",
        rsp->DebugString().c_str());
 
   auto sessionId = controller->GetParam1();
   auto srcCoroId = controller->GetParam2();
-  LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "coroSessionId:%d, srcCoroId:%d, errText:%s",
+  LOG_TRACE("coroSessionId:%d, srcCoroId:%d, errText:%s",
        sessionId, srcCoroId, controller->ErrorText().c_str());
   auto packet = LLBC_GetObjectFromUnsafetyPool<LLBC_Packet>();
   packet->SetSessionId(sessionId);
@@ -138,7 +138,7 @@ void RpcMgr::OnRpcDone(RpcController *controller, google::protobuf::Message *rsp
   packet->Write(srcCoroId);
   packet->Write(controller->ErrorText());
   packet->Write(*rsp);
-  LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "rsp packet:%s",
+  LOG_TRACE("rsp packet:%s",
        packet->ToString().c_str());
   // 回包
   connMgr_->PushPacket(packet);

@@ -43,7 +43,7 @@ int main() {
     return -1;
   }
 
-  LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "Hello Server!");
+  LOG_TRACE("Hello Server!");
 
   ConnMgr *connMgr = s_ConnMgr;
   connMgr->Init();
@@ -66,7 +66,7 @@ int main() {
     LLBC_Sleep(1);
   }
 
-  LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "server Stop");
+  LOG_TRACE("server Stop");
 
   return 0;
 }

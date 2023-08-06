@@ -108,7 +108,7 @@ void MyEchoService::RelayEcho(::google::protobuf::RpcController *controller,
                           const ::echo::EchoRequest *req,
                           ::echo::EchoResponse *rsp,
                           ::google::protobuf::Closure *done) {
-  LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "RECEIVED MSG: %s",
+  LOG_TRACE("RECEIVED MSG: %s",
        req->msg().c_str());
 
   InnerCallMeathod(controller, req, rsp, done);

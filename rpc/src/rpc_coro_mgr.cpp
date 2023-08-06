@@ -16,7 +16,7 @@ void *RpcCoroInfo::GetHandle() const { return controller_->GetPtrParam(); }
 
 int RpcCoroInfo::DecodeRsp(llbc::LLBC_Packet *packet) {
   if (!packet || packet->Read(*rsp_) != LLBC_OK) {
-    LLOG(nullptr, nullptr, LLBC_LogLevel::Error, "Read recvPacket fail");
+    LOG_ERROR("Read recvPacket fail");
     return LLBC_FAILED;
   }
   return LLBC_OK;
@@ -25,13 +25,13 @@ int RpcCoroInfo::DecodeRsp(llbc::LLBC_Packet *packet) {
 void RpcCoroInfo::Resume() { coroMgr_->ResumeRpcCoro(id_); }
 
 void RpcCoroInfo::OnCoroTimeout() {
-  LLOG(nullptr, nullptr, LLBC_LogLevel::Warn, "Coro %d timeout, resume", id_);
+  LOG_WARN("Coro %d timeout, resume", id_);
   controller_->SetFailed("timeout");
   Resume();
 }
 
 void RpcCoroInfo::OnCoroCancel() {
-  LLOG(nullptr, nullptr, LLBC_LogLevel::Warn, "Coro %d cancelled, resume", id_);
+  LOG_WARN("Coro %d cancelled, resume", id_);
   controller_->SetFailed("cancelled");
   Resume();
 }
@@ -71,11 +71,11 @@ void RpcCoroMgr::ResumeRpcCoro(int coroId) {
     return;
   }
   auto coroInfo = it->second;
-  LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "parentCoro resume");
+  LOG_TRACE("parentCoro resume");
   std::coroutine_handle<RpcCoro::promise_type>::from_address(
       coroInfo->GetHandle())
       .resume();
-  LLOG(nullptr, nullptr, LLBC_LogLevel::Trace, "parentCoro resumed");
+  LOG_TRACE("parentCoro resumed");
 
   coroTimeHeap_.DeleteElem(coroInfo);
   delete coroInfo;

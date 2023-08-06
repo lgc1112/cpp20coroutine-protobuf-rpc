@@ -9,6 +9,8 @@
 #pragma once
 
 #include "llbc.h"
+#include "rpc_def.h"
+
 using namespace llbc;
 
 class RpcChannel;
