@@ -23,3 +23,6 @@ add_executable(server2 ${PB_FILES} ${SRC_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/src/
 target_link_libraries(server2 libprotobuf.a libllbc.so)
 # add_executable(test ${PB_FILES} ${SRC_FILES} ./src/test/test.cpp)
 # target_link_libraries(test libprotobuf.a libllbc.so)
+
+add_executable(client_stress_test ${PB_FILES} ${SRC_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/src/client/client_stress_test.cpp)
+target_link_libraries(client_stress_test libprotobuf.a  libllbc.so)

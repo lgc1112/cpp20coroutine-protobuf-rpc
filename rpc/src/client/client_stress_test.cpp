@@ -2,7 +2,7 @@
  * @Author: ligengchao ligengchao@pku.edu.cn
  * @Date: 2023-07-09 14:40:28
  * @LastEditors: Please set LastEditors
- * @LastEditTime: 2023-07-17 22:10:47
+ * @LastEditTime: 2023-08-06 19:45:25
  * @FilePath: /projects/newRpc/rpc-demo/src/client/client.cpp
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置
  * 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
@@ -10,6 +10,7 @@
 #include "conn_mgr.h"
 #include "echo.pb.h"
 #include "echo_service_impl.h"
+#include "echo_stub_impl.h"
 #include "llbc.h"
 #include "rpc_channel.h"
 #include "rpc_coro_mgr.h"
@@ -27,14 +28,13 @@ RpcCoro CallMeathod(RpcChannel *channel) {
 
   // 获取当前协程handle并构造proto controller并构造proto rpc stub并
   RpcController cntl(co_await GetHandleAwaiter{});
-  echo::EchoService_Stub stub(channel);
+  EchoService_MyStub stub(channel);
 
   req.set_msg("Hello, Echo.");
   LOG_INFO("Rpc Echo Call, msg:%s",
        req.msg().c_str());
   // 调用生成的rpc方法Echo,然后挂起协程等待返回
-  stub.Echo(&cntl, &req, &rsp, nullptr);
-  co_await std::suspend_always{};
+  co_await stub.Echo(&cntl, &req, &rsp, nullptr);
   LOG_INFO("Recv Echo Rsp, status:%s, rsp:%s", cntl.Failed() ? cntl.ErrorText().c_str() : "success", 
        rsp.msg().c_str());
   
@@ -43,8 +43,7 @@ RpcCoro CallMeathod(RpcChannel *channel) {
   LOG_INFO("Rpc RelayEcho Call, msg:%s",
        req.msg().c_str());
   // 调用生成的rpc方法RelayEcho,然后挂起协程等待返回
-  stub.RelayEcho(&cntl, &req, &rsp, nullptr);
-  co_await std::suspend_always{};
+  co_await stub.RelayEcho(&cntl, &req, &rsp, nullptr);
   LOG_INFO("Recv RelayEcho Rsp, status:%s, rsp:%s", cntl.Failed() ? cntl.ErrorText().c_str() : "success", 
        rsp.msg().c_str());
   co_return;
@@ -100,7 +99,7 @@ int main() {
 
   // 创建rpc controller & stub
   RpcController cntl;
-  echo::EchoService_Stub stub(channel);
+  EchoService_MyStub stub(channel);
   RpcMgr serviceMgr(s_ConnMgr);
 
   // 主循环处理 rpc 请求

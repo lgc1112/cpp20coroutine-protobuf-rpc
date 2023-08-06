@@ -13,6 +13,13 @@
 #include "rpc_coro_mgr.h"
 using namespace llbc;
 
+#ifdef EnableRpcStat
+long long rpcCallCount = 0, printTime = 0, beginRpcReqTime = 0;
+long long rpcCallTimeSum = 0;
+long long maxRpcCallTime = 0;
+long long minRpcCallTime = LLONG_MAX;
+#endif
+
 RpcMgr::RpcMgr(ConnMgr *connMgr) : connMgr_(connMgr) {
   connMgr_->Subscribe(
       RpcOpCode::RpcReq,
@@ -40,6 +47,10 @@ void RpcMgr::AddService(::google::protobuf::Service *service) {
 }
 
 void RpcMgr::HandleRpcReq(LLBC_Packet &packet) {
+#ifdef EnableRpcStat
+  beginRpcReqTime = llbc::LLBC_GetMicroSeconds();
+#endif
+
   // 读取serviceName&methodName
   int srcCoroId;
   std::string serviceName, methodName;
@@ -143,4 +154,26 @@ void RpcMgr::OnRpcDone(RpcController *controller, google::protobuf::Message *rsp
   // 回包
   connMgr_->PushPacket(packet);
   delete controller;
+
+#ifdef EnableRpcStat
+  long long endTime = llbc::LLBC_GetMicroSeconds();
+  long long tmpTime = endTime - beginRpcReqTime;
+  rpcCallTimeSum += tmpTime;
+  rpcCallCount++;
+  if (tmpTime > maxRpcCallTime)
+    maxRpcCallTime = tmpTime;
+  if (tmpTime < minRpcCallTime)
+    minRpcCallTime = tmpTime;
+    
+  if (endTime - printTime >= 1000000)
+  {
+    LOG_INFO("Rpc Statistic fin, Count:%lld, Total sum Time:%lld, Avg Time:%.2f, Max Time:%lld, Min Time:%lld",
+        rpcCallCount, rpcCallTimeSum, (double)rpcCallTimeSum / rpcCallCount, maxRpcCallTime, minRpcCallTime);
+    printTime = endTime;
+    rpcCallTimeSum = 0;
+    rpcCallCount = 0;
+    maxRpcCallTime = 0;
+    minRpcCallTime = LLONG_MAX;
+  }
+#endif
 }
