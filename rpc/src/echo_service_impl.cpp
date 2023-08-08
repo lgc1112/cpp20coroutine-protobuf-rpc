@@ -11,11 +11,13 @@
 #include "llbc.h"
 #include "rpc_channel.h"
 #include "rpc_coro_mgr.h"
+#include "echo_stub_impl.h"
 using namespace llbc;
 
 RpcCoro TestCallMeathod(::google::protobuf::Closure *done)
 {
   done->Run();
+  co_return;
 }
 void MyEchoService::Echo(::google::protobuf::RpcController *controller,
                          const ::echo::EchoRequest *request,
@@ -29,8 +31,8 @@ void MyEchoService::Echo(::google::protobuf::RpcController *controller,
   response->set_msg(std::string(" Echo >>>>>>> ") + request->msg());
   done->Run();
 #else
-  TestCallMeathod(done);
-  // done->Run();
+  // TestCallMeathod(done);
+  done->Run();
 #endif
 }
 
@@ -55,11 +57,10 @@ RpcCoro InnerCallMeathod(::google::protobuf::RpcController *controller,
   LOG_INFO("call, msg:%s",
        innerReq.msg().c_str());
 
-  RpcController cntl(co_await GetHandleAwaiter{});\
+  RpcController cntl(co_await GetHandleAwaiter{});
 
-  echo::EchoService_Stub stub(channel);
-  stub.Echo(&cntl, &innerReq, &innerRsp, nullptr);
-  co_await std::suspend_always{};
+  EchoService_MyStub stub(channel);
+  co_await stub.Echo(&cntl, &innerReq, &innerRsp, nullptr);
   LOG_INFO("Recv rsp, status:%s, rsp:%s",
        cntl.Failed() ? cntl.ErrorText().c_str() : "success",
        innerRsp.msg().c_str());

@@ -86,6 +86,29 @@ void RpcMgr::HandleRpcReq(LLBC_Packet &packet) {
       this, &RpcMgr::OnRpcDone, controller, rsp);
 
   service->CallMethod(md, controller, req, rsp, done);
+  
+#ifdef EnableRpcPerfStat
+  long long endTime = llbc::LLBC_GetMicroSeconds();
+  long long tmpTime = endTime - beginRpcReqTime;
+  rpcCallTimeSum += tmpTime;
+  rpcCallCount++;
+  if (tmpTime > maxRpcCallTime)
+    maxRpcCallTime = tmpTime;
+  if (tmpTime < minRpcCallTime)
+    minRpcCallTime = tmpTime;
+    
+  if (endTime - printTime >= 1000000)
+  {
+    LOG_INFO("Rpc Statistic fin, Count:%lld, Total sum Time:%lld, Avg Time:%.2f, Max Time:%lld, Min Time:%lld",
+        rpcCallCount, rpcCallTimeSum, (double)rpcCallTimeSum / rpcCallCount, maxRpcCallTime, minRpcCallTime);
+    printTime = endTime;
+    rpcCallTimeSum = 0;
+    rpcCallCount = 0;
+    maxRpcCallTime = 0;
+    minRpcCallTime = LLONG_MAX;
+  }
+#endif
+
 }
 
 void RpcMgr::HandleRpcRsp(LLBC_Packet &packet) {
@@ -155,25 +178,4 @@ void RpcMgr::OnRpcDone(RpcController *controller, google::protobuf::Message *rsp
   connMgr_->PushPacket(packet);
   delete controller;
 
-#ifdef EnableRpcPerfStat
-  long long endTime = llbc::LLBC_GetMicroSeconds();
-  long long tmpTime = endTime - beginRpcReqTime;
-  rpcCallTimeSum += tmpTime;
-  rpcCallCount++;
-  if (tmpTime > maxRpcCallTime)
-    maxRpcCallTime = tmpTime;
-  if (tmpTime < minRpcCallTime)
-    minRpcCallTime = tmpTime;
-    
-  if (endTime - printTime >= 1000000)
-  {
-    LOG_INFO("Rpc Statistic fin, Count:%lld, Total sum Time:%lld, Avg Time:%.2f, Max Time:%lld, Min Time:%lld",
-        rpcCallCount, rpcCallTimeSum, (double)rpcCallTimeSum / rpcCallCount, maxRpcCallTime, minRpcCallTime);
-    printTime = endTime;
-    rpcCallTimeSum = 0;
-    rpcCallCount = 0;
-    maxRpcCallTime = 0;
-    minRpcCallTime = LLONG_MAX;
-  }
-#endif
 }

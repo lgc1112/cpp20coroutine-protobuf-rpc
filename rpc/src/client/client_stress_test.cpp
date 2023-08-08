@@ -2,7 +2,7 @@
  * @Author: ligengchao ligengchao@pku.edu.cn
  * @Date: 2023-07-09 14:40:28
  * @LastEditors: Please set LastEditors
- * @LastEditTime: 2023-08-06 21:12:17
+ * @LastEditTime: 2023-08-08 11:08:37
  * @FilePath: /projects/newRpc/rpc-demo/src/client/client.cpp
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置
  * 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
@@ -34,16 +34,11 @@ RpcCoro CallMeathod(EchoService_MyStub &stub) {
 
   // 获取当前协程handle并构造proto controller并构造proto rpc stub并
   RpcController cntl(co_await GetHandleAwaiter{});
-
-//   LOG_INFO("Rpc Echo Call, msg:%s",
-//        req.msg().c_str());
        
   long long beginRpcReqTime = llbc::LLBC_GetMicroSeconds();
 
   // 调用生成的rpc方法Echo,然后挂起协程等待返回
   co_await stub.Echo(&cntl, &req, &rsp, nullptr);
-//   LOG_INFO("Recv Echo Rsp, status:%s, rsp:%s", cntl.Failed() ? cntl.ErrorText().c_str() : "success", 
-//        rsp.msg().c_str());
   
     long long endTime = llbc::LLBC_GetMicroSeconds();
     long long tmpTime = endTime - beginRpcReqTime;
@@ -78,7 +73,34 @@ void signalHandler(int signum) {
   stop = true;
 }
 
+RpcCoro CallMeathod() {
+  rpcCallCount++;
+  co_return;  
+}
+void testCoroTime()
+{
+  long long rpcCallTimeSum = 0;
+  
+  long long beginTime = llbc::LLBC_GetMicroSeconds();
+  for (int i = 0; i < 10000000; i++){
+    // CallMeathod();
+    auto func = []() -> RpcCoro {
+      rpcCallCount++;
+      co_return;
+    };
+    func();
+  }
+  
+  long long endTime = llbc::LLBC_GetMicroSeconds();
+  rpcCallTimeSum = endTime - beginTime;
+  LOG_INFO("Test fin, Count:%lld, Total sum Time:%lld, Avg Time:%.2f",
+      rpcCallCount, rpcCallTimeSum, (double)rpcCallTimeSum / rpcCallCount);
+}
+
 int main() {
+  // testCoroTime();
+  // exit(0);
+
   // 注册信号 SIGINT 和信号处理程序
   signal(SIGINT, signalHandler);
 
@@ -100,8 +122,7 @@ int main() {
   // 初始化连接管理器
   ret = s_ConnMgr->Init();
   if (ret != LLBC_OK) {
-    LLOG(nullptr, nullptr, LLBC_LogLevel::Trace,
-         "Initialize connMgr failed, error:%s", LLBC_FormatLastError());
+    LOG_WARN("Initialize connMgr failed, error:%s", LLBC_FormatLastError());
     return -1;
   }
 
@@ -131,7 +152,7 @@ int main() {
     s_RpcCoroMgr->Update();
     
     auto isBusy = s_ConnMgr->Tick();
-    if (s_ConnMgr->GetSendQueueSize() < 1000)
+    if (s_ConnMgr->GetSendQueueSize() < 200)
         CallMeathod(stub);
     else
         LLBC_Sleep(1);

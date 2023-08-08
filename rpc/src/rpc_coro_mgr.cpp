@@ -38,7 +38,7 @@ void RpcCoroInfo::OnCoroCancel() {
 
 RpcCoroMgr::~RpcCoroMgr() {
   for (auto it = coroInfos_.begin(); it != coroInfos_.end(); ++it) {
-    LLOG(nullptr, nullptr, LLBC_LogLevel::Warn,
+    LOG_WARN(
          "Coro %d not resume, resume failed", it->first);
     it->second->OnCoroCancel();
   }
@@ -58,7 +58,7 @@ int RpcCoroMgr::AddRpcCoroInfo(RpcController *controller,
 RpcCoroInfo *RpcCoroMgr::GetRpcCoroInfo(int coroId) {
   auto it = coroInfos_.find(coroId);
   if (it == coroInfos_.end()) {
-    LLOG(nullptr, nullptr, LLBC_LogLevel::Error,
+    LOG_ERROR(
          "Coro %d not found, resume failed", coroId);
     return nullptr;
   }
@@ -68,7 +68,7 @@ RpcCoroInfo *RpcCoroMgr::GetRpcCoroInfo(int coroId) {
 void RpcCoroMgr::ResumeRpcCoro(int coroId) {
   auto it = coroInfos_.find(coroId);
   if (it == coroInfos_.end()) {
-    LLOG(nullptr, nullptr, LLBC_LogLevel::Error,
+    LOG_ERROR(
          "Coro %d not found, resume failed", coroId);
     return;
   }

@@ -2,7 +2,7 @@
  * @Author: ligengchao ligengchao@pku.edu.cn
  * @Date: 2023-07-09 17:19:49
  * @LastEditors: Please set LastEditors
- * @LastEditTime: 2023-07-17 21:48:16
+ * @LastEditTime: 2023-08-08 10:53:38
  * @FilePath: /projects/newRpc/rpc-demo/src/server/server.cpp
  */
 #include "conn_mgr.h"
@@ -49,8 +49,7 @@ int main() {
 
   // 启动rpc监听服务
   if (s_ConnMgr->StartRpcService("127.0.0.1", 6688) != LLBC_OK) {
-    LLOG(nullptr, nullptr, LLBC_LogLevel::Trace,
-         "connMgr StartRpcService Fail");
+    LOG_TRACE("connMgr StartRpcService Fail");
     return -1;
   }
 

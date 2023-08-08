@@ -2,7 +2,7 @@
  * @Author: ligengchao ligengchao@pku.edu.cn
  * @Date: 2023-07-09 14:40:28
  * @LastEditors: Please set LastEditors
- * @LastEditTime: 2023-07-17 21:48:37
+ * @LastEditTime: 2023-08-07 20:33:07
  * @FilePath: /projects/newRpc/rpc-demo/src/server/server2.cpp
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置
  * 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
@@ -50,8 +50,7 @@ int main() {
 
   // 启动rpc服务
   if (connMgr->StartRpcService("127.0.0.1", 6699) != LLBC_OK) {
-    LLOG(nullptr, nullptr, LLBC_LogLevel::Trace,
-         "connMgr StartRpcService Fail");
+    LOG_WARN("connMgr StartRpcService Fail");
     return -1;
   }
 

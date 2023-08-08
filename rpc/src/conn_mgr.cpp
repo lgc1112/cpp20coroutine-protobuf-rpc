@@ -39,7 +39,7 @@ void ConnComp::OnAsyncConnResult(const LLBC_AsyncConnResult &result) {
 }
 
 void ConnComp::OnUnHandledPacket(const LLBC_Packet &packet) {
-  LLOG(nullptr, nullptr, LLBC_LogLevel::Trace,
+  LOG_TRACE(
        "Unhandled packet, sessionId: %d, opcode: %d, payloadLen: %ld",
        packet.GetSessionId(), packet.GetOpcode(), packet.GetPayloadLength());
 }
@@ -56,7 +56,7 @@ void ConnComp::OnUpdate() {
          sendPacket->ToString().c_str());
     auto ret = GetService()->Send(sendPacket);
     if (ret != LLBC_OK) {
-      LLOG(nullptr, nullptr, LLBC_LogLevel::Error,
+      LOG_ERROR(
            "Send packet failed, err: %s", LLBC_FormatLastError());
     }
 
@@ -110,7 +110,7 @@ int ConnMgr::StartRpcService(const char *ip, int port) {
        ip, port);
   int serverSessionId_ = svc_->Listen(ip, port);
   if (serverSessionId_ == 0) {
-    LLOG(nullptr, nullptr, LLBC_LogLevel::Error,
+    LOG_ERROR(
          "Create session failed, reason: %s", LLBC_FormatLastError());
     return LLBC_FAILED;
   }
@@ -129,12 +129,12 @@ RpcChannel *ConnMgr::GetRpcChannel(const char *ip, int port) {
 
   auto sessionId = svc_->Connect(ip, port);
   if (sessionId == 0) {
-    LLOG(nullptr, nullptr, LLBC_LogLevel::Error,
+    LOG_ERROR(
          "Create session failed, reason: %s", LLBC_FormatLastError());
     return nullptr;
   }
 
-  LLOG(nullptr, nullptr, LLBC_LogLevel::Trace,
+  LOG_TRACE(
        "GetRpcChannel, sessionId:%d, addr:%s", sessionId, addr.c_str());
   session2Addr_.emplace(sessionId, addr);
   return addr2Channel_.emplace(addr, new RpcChannel(this, sessionId))
@@ -144,7 +144,7 @@ RpcChannel *ConnMgr::GetRpcChannel(const char *ip, int port) {
 int ConnMgr::CloseSession(int sessionId) {
   auto it = session2Addr_.find(sessionId);
   if (it == session2Addr_.end()) {
-    LLOG(nullptr, nullptr, LLBC_LogLevel::Error,
+    LOG_ERROR(
          "CloseSession, sessionId:%d not found", sessionId);
     return LLBC_FAILED;
   }
