@@ -2,7 +2,7 @@
  * @Author: ligengchao ligengchao@pku.edu.cn
  * @Date: 2023-07-09 14:40:28
  * @LastEditors: Please set LastEditors
- * @LastEditTime: 2023-08-07 20:32:50
+ * @LastEditTime: 2023-08-08 23:10:11
  * @FilePath: /projects/newRpc/rpc-demo/src/client/client.cpp
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置
  * 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
@@ -75,7 +75,9 @@ int main() {
   }
 
   // 初始化连接管理器
-  ret = s_ConnMgr->Init();
+  s_ConnMgr->Init();
+  RpcMgr serviceMgr(s_ConnMgr);
+  ret = s_ConnMgr->Start();
   if (ret != LLBC_OK) {
     LOG_TRACE("Initialize connMgr failed, error:%s", LLBC_FormatLastError());
     return -1;
@@ -98,7 +100,6 @@ int main() {
   // 创建rpc controller & stub
   RpcController cntl;
   EchoService_MyStub stub(channel);
-  RpcMgr serviceMgr(s_ConnMgr);
 
   // 主循环处理 rpc 请求
   int count = 0;
@@ -106,17 +107,15 @@ int main() {
     // 更新协程管理器，处理超时协程
     s_RpcCoroMgr->Update();
     // 更新连接管理器，处理接收到的rpc req和rsp
-    auto isBusy = s_ConnMgr->Tick();
-    if (!isBusy) {
-      LLBC_Sleep(1);
-      ++count;
-      // 满1s就创建一个新协程发请求包
-      if (count == 1000) {
-        count = 0;
-        LOG_TRACE("CallMeathod Start");
-        CallMeathod(channel);
-        LOG_TRACE("CallMeathod return");
-      }
+    s_ConnMgr->Tick();
+    LLBC_Sleep(1);
+    ++count;
+    // 满1s就创建一个新协程发请求包
+    if (count == 1000) {
+      count = 0;
+      LOG_TRACE("CallMeathod Start");
+      CallMeathod(channel);
+      LOG_TRACE("CallMeathod return");
     }
   }
 

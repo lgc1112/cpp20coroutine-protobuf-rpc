@@ -2,7 +2,7 @@
  * @Author: ligengchao ligengchao@pku.edu.cn
  * @Date: 2023-07-09 14:40:28
  * @LastEditors: Please set LastEditors
- * @LastEditTime: 2023-08-08 16:16:50
+ * @LastEditTime: 2023-08-08 23:04:58
  * @FilePath: /projects/newRpc/rpc-demo/src/client/client.cpp
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置
  * 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
@@ -20,6 +20,7 @@
 
 using namespace llbc;
 
+int waitRspNum = 0;
 long long printTime = 0;
 long long rpcCallCount = 0, failCount = 0, finishCount = 0;
 long long rpcCallTimeSum = 0;
@@ -38,7 +39,9 @@ RpcCoro CallMeathod(EchoService_MyStub &stub) {
   long long beginRpcReqTime = llbc::LLBC_GetMicroSeconds();
 
   // 调用生成的rpc方法Echo,然后挂起协程等待返回
+  waitRspNum++;
   co_await stub.Echo(&cntl, &req, &rsp, nullptr);
+  waitRspNum--;
 
   long long endTime = llbc::LLBC_GetMicroSeconds();
   long long tmpTime = endTime - beginRpcReqTime;
@@ -120,7 +123,9 @@ int main() {
   }
 
   // 初始化连接管理器
-  ret = s_ConnMgr->Init();
+  s_ConnMgr->Init();
+  RpcMgr serviceMgr(s_ConnMgr);
+  ret = s_ConnMgr->Start();
   if (ret != LLBC_OK) {
     LOG_WARN("Initialize connMgr failed, error:%s", LLBC_FormatLastError());
     return -1;
@@ -143,7 +148,6 @@ int main() {
   // 创建rpc controller & stub
   RpcController cntl;
   EchoService_MyStub stub(channel);
-  RpcMgr serviceMgr(s_ConnMgr);
   req.set_msg("Hello, Echo.");
 
   // 主循环处理 rpc 请求
@@ -151,8 +155,8 @@ int main() {
     // 更新协程管理器，处理超时协程
     s_RpcCoroMgr->Update();
 
-    auto isBusy = s_ConnMgr->Tick();
-    if (s_ConnMgr->GetSendQueueSize() < 100)
+    s_ConnMgr->Tick();
+    if (waitRspNum <= 200)
       CallMeathod(stub);
     // #ifndef EnableRpcPerfStat
     else

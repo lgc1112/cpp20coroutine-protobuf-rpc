@@ -92,7 +92,6 @@ void RpcCoroMgr::Update() {
          coroTimeHeap_.Top()->GetTimeoutTime() <= now) {
     auto coroInfo = coroTimeHeap_.Top();
     coroInfo->OnCoroTimeout();
-    // coroTimeHeap_.DeleteTop();
   }
   // #endif
 }

@@ -8,9 +8,7 @@
 #include "conn_mgr.h"
 #include "rpc_channel.h"
 
-ConnComp::ConnComp()
-    : LLBC_Component(LLBC_ComponentEvents::DefaultEvents |
-                     LLBC_ComponentEvents::OnUpdate) {}
+ConnComp::ConnComp() : LLBC_Component(LLBC_ComponentEvents::DefaultEvents) {}
 
 bool ConnComp::OnInit(bool &initFinished) {
   LOG_TRACE("Service create!");
@@ -27,7 +25,6 @@ void ConnComp::OnSessionCreate(const LLBC_SessionInfo &sessionInfo) {
 
 void ConnComp::OnSessionDestroy(const LLBC_SessionDestroyInfo &destroyInfo) {
   LOG_TRACE("Session Destroy, info: %s", destroyInfo.ToString().c_str());
-  // Todo：此处为网络中断时，通信线程调用，需要将消息放入recvQueue_，由主线程处理
   s_ConnMgr->CloseSession(destroyInfo.GetSessionId());
 }
 
@@ -45,32 +42,10 @@ void ConnComp::OnProtoReport(const LLBC_ProtoReport &report) {
   LOG_TRACE("Proto report: %s", report.ToString().c_str());
 }
 
-void ConnComp::OnUpdate() {
-  auto *sendPacket = sendQueue_.Pop();
-  while (sendPacket) {
-    LOG_TRACE("sendPacket:%s", sendPacket->ToString().c_str());
-    auto ret = GetService()->Send(sendPacket);
-    if (ret != LLBC_OK) {
-      LOG_ERROR("Send packet failed, err: %s", LLBC_FormatLastError());
-    }
-
-    sendPacket = sendQueue_.Pop();
-  }
-}
-
-void ConnComp::OnRecvPacket(LLBC_Packet &packet) {
-  LOG_TRACE("OnRecvPacket:%s", packet.ToString().c_str());
-  LLBC_Packet *recvPacket = LLBC_GetObjectFromSafetyPool<LLBC_Packet>();
-  recvPacket->SetHeader(packet, packet.GetOpcode(), 0);
-  recvPacket->SetPayload(packet.DetachPayload());
-  recvQueue_.Push(recvPacket);
-}
+void ConnComp::OnUpdate() {}
 
 int ConnComp::PushPacket(LLBC_Packet *sendPacket) {
-  if (sendQueue_.Push(sendPacket))
-    return LLBC_OK;
-
-  return LLBC_FAILED;
+  return GetService()->Send(sendPacket);
 }
 
 ConnMgr::ConnMgr() {
@@ -86,15 +61,16 @@ ConnMgr::~ConnMgr() {
 int ConnMgr::Init() {
   // Create service
   svc_ = LLBC_Service::Create("SvcTest");
-#ifdef EnableRpcPerfStat
-  svc_->SetFPS(1000);
-#endif
+  svc_->SetDriveMode(LLBC_Service::ExternalDrive);
+  svc_->SetFPS(500);
   comp_ = new ConnComp;
   svc_->AddComponent(comp_);
-  svc_->Subscribe(RpcOpCode::RpcReq, comp_, &ConnComp::OnRecvPacket);
-  svc_->Subscribe(RpcOpCode::RpcRsp, comp_, &ConnComp::OnRecvPacket);
   svc_->SuppressCoderNotFoundWarning();
-  auto ret = svc_->Start(1);
+  return LLBC_OK;
+}
+
+int ConnMgr::Start() {
+  auto ret = svc_->Start(5);
   LOG_TRACE("Service start, ret: %d", ret);
   return ret;
 }
@@ -147,34 +123,25 @@ int ConnMgr::CloseSession(int sessionId) {
 }
 
 bool ConnMgr::Tick() {
-  auto ret = false;
-  // 读取接收到的数据包并给对应的订阅者处理
-  auto packet = PopPacket();
-  while (packet) {
-    ret = true;
-    LOG_TRACE("Tick");
-    auto it = packetDelegs_.find(packet->GetOpcode());
-    if (it == packetDelegs_.end())
-      LOG_WARN("Recv Untapped opcode:%d", packet->GetOpcode());
-    else
-      (it->second)(*packet);
+  
+#ifdef EnableRpcPerfStat
+  svc_->OnSvc(false);
+#else
+  svc_->OnSvc(true);
+#endif
 
-    // 取下一个包
-    LLBC_Recycle(packet);
-    packet = PopPacket();
-  }
-
-  return ret;
+  return true;
 }
 
 int ConnMgr::Subscribe(int cmdId,
                        const LLBC_Delegate<void(LLBC_Packet &)> &deleg) {
-  auto pair = packetDelegs_.emplace(cmdId, deleg);
-  if (!pair.second) {
+  if (svc_->Subscribe(cmdId, deleg) != LLBC_OK) {
+    LOG_ERROR("Subscribe failed, cmdId:%d, errstr:%s", cmdId,
+              LLBC_FormatLastError());
     return LLBC_FAILED;
   }
 
   return LLBC_OK;
 }
 
-void ConnMgr::Unsubscribe(int cmdId) { packetDelegs_.erase(cmdId); }
+void ConnMgr::Unsubscribe(int cmdId) {}

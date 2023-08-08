@@ -39,6 +39,10 @@ void RpcChannel::CallMethod(const ::google::protobuf::MethodDescriptor *method,
   sendPacket->Write(*request);
 
   // 通过连接管理器发送包
-  connMgr_->PushPacket(sendPacket);
+  auto ret = connMgr_->PushPacket(sendPacket);
+  if (ret != LLBC_OK) {
+    LOG_ERROR("PushPacket failed, ret: %s", LLBC_FormatLastError());
+    return;
+  }
   LOG_TRACE("Waiting!");
 }

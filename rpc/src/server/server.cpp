@@ -2,7 +2,7 @@
  * @Author: ligengchao ligengchao@pku.edu.cn
  * @Date: 2023-07-09 17:19:49
  * @LastEditors: Please set LastEditors
- * @LastEditTime: 2023-08-08 16:02:44
+ * @LastEditTime: 2023-08-08 23:04:13
  * @FilePath: /projects/newRpc/rpc-demo/src/server/server.cpp
  */
 #include "conn_mgr.h"
@@ -46,6 +46,8 @@ int main() {
 
   // 初始化rpc协程管理器
   s_ConnMgr->Init();
+  RpcMgr serviceMgr(s_ConnMgr);
+  s_ConnMgr->Start();
 
   // 启动rpc监听服务
   if (s_ConnMgr->StartRpcService("127.0.0.1", 6688) != LLBC_OK) {
@@ -54,7 +56,6 @@ int main() {
   }
 
   // 添加rpc服务
-  RpcMgr serviceMgr(s_ConnMgr);
   MyEchoService echoService;
   serviceMgr.AddService(&echoService);
 
@@ -63,11 +64,7 @@ int main() {
     // 更新协程管理器，处理超时协程
     s_RpcCoroMgr->Update();
     // 更新连接管理器，处理接收到的rpc req和rsp
-    auto isBusy = s_ConnMgr->Tick();
-#ifndef EnableRpcPerfStat
-    if (!isBusy)
-      LLBC_Sleep(1);
-#endif
+    s_ConnMgr->Tick();
   }
 
   LOG_TRACE("server Stop");
