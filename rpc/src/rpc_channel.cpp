@@ -13,7 +13,7 @@
 
 using namespace llbc;
 
-RpcChannel::~RpcChannel() { }
+RpcChannel::~RpcChannel() {}
 
 void RpcChannel::CallMethod(const ::google::protobuf::MethodDescriptor *method,
                             ::google::protobuf::RpcController *controller,
@@ -21,7 +21,7 @@ void RpcChannel::CallMethod(const ::google::protobuf::MethodDescriptor *method,
                             ::google::protobuf::Message *response,
                             ::google::protobuf::Closure *) {
   response->Clear();
-  
+
   LOG_TRACE("CallMethod!");
   // 创建并填充发送包
   LLBC_Packet *sendPacket = LLBC_GetObjectFromSafetyPool<LLBC_Packet>();
@@ -31,7 +31,8 @@ void RpcChannel::CallMethod(const ::google::protobuf::MethodDescriptor *method,
   sendPacket->Write(method->name());
 
   // Controller信息和rsp并创建协程信息
-  auto coroId = s_RpcCoroMgr->AddRpcCoroInfo(static_cast<RpcController *>(controller), response);
+  auto coroId = s_RpcCoroMgr->AddRpcCoroInfo(
+      static_cast<RpcController *>(controller), response);
 
   // 填充协程Id和请求包
   sendPacket->Write(coroId);

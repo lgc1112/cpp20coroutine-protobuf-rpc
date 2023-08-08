@@ -12,13 +12,13 @@
 #include "llbc.h"
 
 #include "echo.pb.h"
+#include "rpc_def.h"
 #include <coroutine>
 #include <functional>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
 #include <unordered_map>
-#include "rpc_def.h"
 
 namespace llbc {
 class LLBC_Packet;
@@ -83,7 +83,7 @@ struct GetHandleAwaiter {
 class RpcCoroInfo {
 public:
   RpcCoroInfo(int coroId, RpcCoroMgr *coroMgr, RpcController *controller,
-           google::protobuf::Message *rsp, int timeoutTime = CoroTimeoutTime)
+              google::protobuf::Message *rsp, int timeoutTime = CoroTimeoutTime)
       : id_(coroId), coroMgr_(coroMgr), controller_(controller), rsp_(rsp),
         timeoutTime_(llbc::LLBC_GetMilliSeconds() + timeoutTime) {}
 
@@ -106,7 +106,7 @@ public:
 private:
   int id_;
   RpcCoroMgr *coroMgr_;
-  RpcController *controller_;  
+  RpcController *controller_;
   google::protobuf::Message *rsp_;
   llbc::sint64 timeoutTime_;
 };

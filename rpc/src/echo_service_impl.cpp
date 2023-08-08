@@ -8,14 +8,13 @@
  */
 #include "echo_service_impl.h"
 #include "conn_mgr.h"
+#include "echo_stub_impl.h"
 #include "llbc.h"
 #include "rpc_channel.h"
 #include "rpc_coro_mgr.h"
-#include "echo_stub_impl.h"
 using namespace llbc;
 
-RpcCoro TestCallMeathod(::google::protobuf::Closure *done)
-{
+RpcCoro TestCallMeathod(::google::protobuf::Closure *done) {
   done->Run();
   co_return;
 }
@@ -24,9 +23,8 @@ void MyEchoService::Echo(::google::protobuf::RpcController *controller,
                          ::echo::EchoResponse *response,
                          ::google::protobuf::Closure *done) {
 
-#ifndef EnableRpcPerfStat            
-  LOG_INFO("received, msg:%s",
-       request->msg().c_str());
+#ifndef EnableRpcPerfStat
+  LOG_INFO("received, msg:%s", request->msg().c_str());
   // LLBC_Sleep(5000); timeout test
   response->set_msg(std::string(" Echo >>>>>>> ") + request->msg());
   done->Run();
@@ -54,16 +52,15 @@ RpcCoro InnerCallMeathod(::google::protobuf::RpcController *controller,
     co_return;
   }
 
-  LOG_INFO("call, msg:%s",
-       innerReq.msg().c_str());
+  LOG_INFO("call, msg:%s", innerReq.msg().c_str());
 
   RpcController cntl(co_await GetHandleAwaiter{});
 
   EchoService_MyStub stub(channel);
   co_await stub.Echo(&cntl, &innerReq, &innerRsp, nullptr);
   LOG_INFO("Recv rsp, status:%s, rsp:%s",
-       cntl.Failed() ? cntl.ErrorText().c_str() : "success",
-       innerRsp.msg().c_str());
+           cntl.Failed() ? cntl.ErrorText().c_str() : "success",
+           innerRsp.msg().c_str());
   if (cntl.Failed()) {
     controller->SetFailed(cntl.ErrorText());
   }
@@ -75,11 +72,10 @@ RpcCoro InnerCallMeathod(::google::protobuf::RpcController *controller,
 }
 
 void MyEchoService::RelayEcho(::google::protobuf::RpcController *controller,
-                          const ::echo::EchoRequest *req,
-                          ::echo::EchoResponse *rsp,
-                          ::google::protobuf::Closure *done) {
-  LOG_TRACE("RECEIVED MSG: %s",
-       req->msg().c_str());
+                              const ::echo::EchoRequest *req,
+                              ::echo::EchoResponse *rsp,
+                              ::google::protobuf::Closure *done) {
+  LOG_TRACE("RECEIVED MSG: %s", req->msg().c_str());
 
   InnerCallMeathod(controller, req, rsp, done);
 }

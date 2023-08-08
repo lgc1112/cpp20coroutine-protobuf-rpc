@@ -172,4 +172,3 @@ private:
 };
 
 #define s_ConnMgr ::llbc::LLBC_Singleton<ConnMgr>::Instance()
-

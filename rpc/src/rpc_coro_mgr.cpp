@@ -38,28 +38,26 @@ void RpcCoroInfo::OnCoroCancel() {
 
 RpcCoroMgr::~RpcCoroMgr() {
   for (auto it = coroInfos_.begin(); it != coroInfos_.end(); ++it) {
-    LOG_WARN(
-         "Coro %d not resume, resume failed", it->first);
+    LOG_WARN("Coro %d not resume, resume failed", it->first);
     it->second->OnCoroCancel();
   }
 }
 
 int RpcCoroMgr::AddRpcCoroInfo(RpcController *controller,
-                           google::protobuf::Message *rsp) {
+                               google::protobuf::Message *rsp) {
   int id = maxCoroId++;
   auto coroInfo = new RpcCoroInfo(id, this, controller, rsp);
   coroInfos_[id] = coroInfo;
-// #ifndef EnableRpcPerfStat 
+  // #ifndef EnableRpcPerfStat
   coroTimeHeap_.Insert(coroInfo);
-// #endif
+  // #endif
   return id;
 }
 
 RpcCoroInfo *RpcCoroMgr::GetRpcCoroInfo(int coroId) {
   auto it = coroInfos_.find(coroId);
   if (it == coroInfos_.end()) {
-    LOG_ERROR(
-         "Coro %d not found, resume failed", coroId);
+    LOG_ERROR("Coro %d not found, resume failed", coroId);
     return nullptr;
   }
   return it->second;
@@ -68,8 +66,7 @@ RpcCoroInfo *RpcCoroMgr::GetRpcCoroInfo(int coroId) {
 void RpcCoroMgr::ResumeRpcCoro(int coroId) {
   auto it = coroInfos_.find(coroId);
   if (it == coroInfos_.end()) {
-    LOG_ERROR(
-         "Coro %d not found, resume failed", coroId);
+    LOG_ERROR("Coro %d not found, resume failed", coroId);
     return;
   }
   auto coroInfo = it->second;
@@ -78,9 +75,9 @@ void RpcCoroMgr::ResumeRpcCoro(int coroId) {
       coroInfo->GetHandle())
       .resume();
   LOG_TRACE("parentCoro resumed");
-// #ifndef EnableRpcPerfStat 
+  // #ifndef EnableRpcPerfStat
   coroTimeHeap_.DeleteElem(coroInfo);
-// #endif
+  // #endif
   delete coroInfo;
   coroInfos_.erase(it);
 
@@ -88,7 +85,7 @@ void RpcCoroMgr::ResumeRpcCoro(int coroId) {
 }
 
 void RpcCoroMgr::Update() {
-// #ifndef EnableRpcPerfStat 
+  // #ifndef EnableRpcPerfStat
   auto now = LLBC_GetMilliSeconds();
   // 有超时的协程，调用超时处理函数
   while (!coroTimeHeap_.IsEmpty() &&
@@ -97,5 +94,5 @@ void RpcCoroMgr::Update() {
     coroInfo->OnCoroTimeout();
     // coroTimeHeap_.DeleteTop();
   }
-// #endif
+  // #endif
 }

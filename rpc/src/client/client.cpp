@@ -31,21 +31,20 @@ RpcCoro CallMeathod(RpcChannel *channel) {
   EchoService_MyStub stub(channel);
 
   req.set_msg("Hello, Echo.");
-  LOG_INFO("Rpc Echo Call, msg:%s",
-       req.msg().c_str());
+  LOG_INFO("Rpc Echo Call, msg:%s", req.msg().c_str());
   // 调用生成的rpc方法Echo,然后挂起协程等待返回
   co_await stub.Echo(&cntl, &req, &rsp, nullptr);
-  LOG_INFO("Recv Echo Rsp, status:%s, rsp:%s", cntl.Failed() ? cntl.ErrorText().c_str() : "success", 
-       rsp.msg().c_str());
-  
+  LOG_INFO("Recv Echo Rsp, status:%s, rsp:%s",
+           cntl.Failed() ? cntl.ErrorText().c_str() : "success",
+           rsp.msg().c_str());
 
   req.set_msg("Hello, RelayEcho.");
-  LOG_INFO("Rpc RelayEcho Call, msg:%s",
-       req.msg().c_str());
+  LOG_INFO("Rpc RelayEcho Call, msg:%s", req.msg().c_str());
   // 调用生成的rpc方法RelayEcho,然后挂起协程等待返回
   co_await stub.RelayEcho(&cntl, &req, &rsp, nullptr);
-  LOG_INFO("Recv RelayEcho Rsp, status:%s, rsp:%s", cntl.Failed() ? cntl.ErrorText().c_str() : "success", 
-       rsp.msg().c_str());
+  LOG_INFO("Recv RelayEcho Rsp, status:%s, rsp:%s",
+           cntl.Failed() ? cntl.ErrorText().c_str() : "success",
+           rsp.msg().c_str());
   co_return;
 }
 
@@ -66,12 +65,12 @@ int main() {
 
   // 初始化日志
   const std::string path = __FILE__;
-  const std::string logPath = path.substr(0, path.find_last_of("/\\"))+ "/../../log/cfg/server_log.cfg";
+  const std::string logPath = path.substr(0, path.find_last_of("/\\")) +
+                              "/../../log/cfg/server_log.cfg";
   auto ret = LLBC_LoggerMgrSingleton->Initialize(logPath);
   if (ret == LLBC_FAILED) {
     std::cout << "Initialize logger failed, error: " << LLBC_FormatLastError()
-              << "path:" << logPath
-              << std::endl;
+              << "path:" << logPath << std::endl;
     return -1;
   }
 

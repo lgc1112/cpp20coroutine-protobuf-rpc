@@ -34,36 +34,37 @@ RpcCoro CallMeathod(EchoService_MyStub &stub) {
 
   // 获取当前协程handle并构造proto controller并构造proto rpc stub并
   RpcController cntl(co_await GetHandleAwaiter{});
-       
+
   long long beginRpcReqTime = llbc::LLBC_GetMicroSeconds();
 
   // 调用生成的rpc方法Echo,然后挂起协程等待返回
   co_await stub.Echo(&cntl, &req, &rsp, nullptr);
-  
-    long long endTime = llbc::LLBC_GetMicroSeconds();
-    long long tmpTime = endTime - beginRpcReqTime;
-    rpcCallTimeSum += tmpTime;
-    rpcCallCount++;
-    if (cntl.Failed()) {
-        ++failCount;
-    }
-    if (tmpTime > maxRpcCallTime)
-      maxRpcCallTime = tmpTime;
-    if (tmpTime < minRpcCallTime)
-      minRpcCallTime = tmpTime;
-      
-    if (endTime - printTime >= 1000000)
-    {
-      LOG_INFO("Rpc Statistic fin, Count:%lld, Fail Count:%lld, Total sum Time:%lld, Avg Time:%.2f, Max Time:%lld, Min Time:%lld",
-          rpcCallCount, failCount, rpcCallTimeSum, (double)rpcCallTimeSum / rpcCallCount, maxRpcCallTime, minRpcCallTime);
-      printTime = endTime;
-      rpcCallTimeSum = 0;
-      rpcCallCount = 0;
-      failCount = 0;
-      maxRpcCallTime = 0;
-      minRpcCallTime = LLONG_MAX;
-    }
 
+  long long endTime = llbc::LLBC_GetMicroSeconds();
+  long long tmpTime = endTime - beginRpcReqTime;
+  rpcCallTimeSum += tmpTime;
+  rpcCallCount++;
+  if (cntl.Failed()) {
+    ++failCount;
+  }
+  if (tmpTime > maxRpcCallTime)
+    maxRpcCallTime = tmpTime;
+  if (tmpTime < minRpcCallTime)
+    minRpcCallTime = tmpTime;
+
+  if (endTime - printTime >= 1000000) {
+    LOG_INFO("Rpc Statistic fin, Count:%lld, Fail Count:%lld, Total sum "
+             "Time:%lld, Avg Time:%.2f, Max Time:%lld, Min Time:%lld",
+             rpcCallCount, failCount, rpcCallTimeSum,
+             (double)rpcCallTimeSum / rpcCallCount, maxRpcCallTime,
+             minRpcCallTime);
+    printTime = endTime;
+    rpcCallTimeSum = 0;
+    rpcCallCount = 0;
+    failCount = 0;
+    maxRpcCallTime = 0;
+    minRpcCallTime = LLONG_MAX;
+  }
 }
 
 bool stop = false;
@@ -75,14 +76,13 @@ void signalHandler(int signum) {
 
 RpcCoro CallMeathod() {
   rpcCallCount++;
-  co_return;  
+  co_return;
 }
-void testCoroTime()
-{
+void testCoroTime() {
   long long rpcCallTimeSum = 0;
-  
+
   long long beginTime = llbc::LLBC_GetMicroSeconds();
-  for (int i = 0; i < 10000000; i++){
+  for (int i = 0; i < 10000000; i++) {
     // CallMeathod();
     auto func = []() -> RpcCoro {
       rpcCallCount++;
@@ -90,11 +90,11 @@ void testCoroTime()
     };
     func();
   }
-  
+
   long long endTime = llbc::LLBC_GetMicroSeconds();
   rpcCallTimeSum = endTime - beginTime;
   LOG_INFO("Test fin, Count:%lld, Total sum Time:%lld, Avg Time:%.2f",
-      rpcCallCount, rpcCallTimeSum, (double)rpcCallTimeSum / rpcCallCount);
+           rpcCallCount, rpcCallTimeSum, (double)rpcCallTimeSum / rpcCallCount);
 }
 
 int main() {
@@ -110,12 +110,12 @@ int main() {
 
   // 初始化日志
   const std::string path = __FILE__;
-  const std::string logPath = path.substr(0, path.find_last_of("/\\"))+ "/../../log/cfg/server_log.cfg";
+  const std::string logPath = path.substr(0, path.find_last_of("/\\")) +
+                              "/../../log/cfg/server_log.cfg";
   auto ret = LLBC_LoggerMgrSingleton->Initialize(logPath);
   if (ret == LLBC_FAILED) {
     std::cout << "Initialize logger failed, error: " << LLBC_FormatLastError()
-              << "path:" << logPath
-              << std::endl;
+              << "path:" << logPath << std::endl;
     return -1;
   }
 
@@ -150,14 +150,14 @@ int main() {
   while (!stop) {
     // 更新协程管理器，处理超时协程
     s_RpcCoroMgr->Update();
-    
+
     auto isBusy = s_ConnMgr->Tick();
     if (s_ConnMgr->GetSendQueueSize() < 100)
-        CallMeathod(stub);
-// #ifndef EnableRpcPerfStat
+      CallMeathod(stub);
+    // #ifndef EnableRpcPerfStat
     else
-        LLBC_Sleep(1);
-// #endif
+      LLBC_Sleep(1);
+    // #endif
   }
 
   LOG_INFO("client Stop");

@@ -33,15 +33,15 @@ int main() {
 
   // 初始化日志
   const std::string path = __FILE__;
-  const std::string logPath = path.substr(0, path.find_last_of("/\\"))+ "/../../log/cfg/server_log.cfg";
+  const std::string logPath = path.substr(0, path.find_last_of("/\\")) +
+                              "/../../log/cfg/server_log.cfg";
   auto ret = LLBC_LoggerMgrSingleton->Initialize(logPath);
   if (ret == LLBC_FAILED) {
     std::cout << "Initialize logger failed, error: " << LLBC_FormatLastError()
-              << "path:" << logPath
-              << std::endl;
+              << "path:" << logPath << std::endl;
     return -1;
   }
-  
+
   LOG_TRACE("Hello Server!");
 
   // 初始化rpc协程管理器
@@ -61,17 +61,16 @@ int main() {
   // 主循环
   while (!stop) {
     // 更新协程管理器，处理超时协程
-    s_RpcCoroMgr->Update(); 
+    s_RpcCoroMgr->Update();
     // 更新连接管理器，处理接收到的rpc req和rsp
     auto isBusy = s_ConnMgr->Tick();
-    #ifndef EnableRpcPerfStat
-    if (!isBusy) 
+#ifndef EnableRpcPerfStat
+    if (!isBusy)
       LLBC_Sleep(1);
-    #endif
+#endif
   }
 
   LOG_TRACE("server Stop");
 
   return 0;
 }
-

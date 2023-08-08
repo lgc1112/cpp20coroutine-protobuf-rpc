@@ -34,12 +34,12 @@ int main() {
 
   // 初始化日志
   const std::string path = __FILE__;
-  const std::string logPath = path.substr(0, path.find_last_of("/\\"))+ "/../../log/cfg/server_log.cfg";
+  const std::string logPath = path.substr(0, path.find_last_of("/\\")) +
+                              "/../../log/cfg/server_log.cfg";
   auto ret = LLBC_LoggerMgrSingleton->Initialize(logPath);
   if (ret == LLBC_FAILED) {
     std::cout << "Initialize logger failed, error: " << LLBC_FormatLastError()
-              << "path:" << logPath
-              << std::endl;
+              << "path:" << logPath << std::endl;
     return -1;
   }
 
