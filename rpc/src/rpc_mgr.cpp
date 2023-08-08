@@ -166,7 +166,7 @@ void RpcMgr::OnRpcDone(RpcController *controller, google::protobuf::Message *rsp
   auto srcCoroId = controller->GetParam2();
   LOG_TRACE("coroSessionId:%d, srcCoroId:%d, errText:%s",
        sessionId, srcCoroId, controller->ErrorText().c_str());
-  auto packet = LLBC_GetObjectFromUnsafetyPool<LLBC_Packet>();
+  auto packet = LLBC_GetObjectFromSafetyPool<LLBC_Packet>();
   packet->SetSessionId(sessionId);
   packet->SetOpcode(RpcOpCode::RpcRsp);
   packet->Write(srcCoroId);

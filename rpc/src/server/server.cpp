@@ -2,7 +2,7 @@
  * @Author: ligengchao ligengchao@pku.edu.cn
  * @Date: 2023-07-09 17:19:49
  * @LastEditors: Please set LastEditors
- * @LastEditTime: 2023-08-08 10:53:38
+ * @LastEditTime: 2023-08-08 16:02:44
  * @FilePath: /projects/newRpc/rpc-demo/src/server/server.cpp
  */
 #include "conn_mgr.h"
@@ -64,8 +64,10 @@ int main() {
     s_RpcCoroMgr->Update(); 
     // 更新连接管理器，处理接收到的rpc req和rsp
     auto isBusy = s_ConnMgr->Tick();
+    #ifndef EnableRpcPerfStat
     if (!isBusy) 
       LLBC_Sleep(1);
+    #endif
   }
 
   LOG_TRACE("server Stop");

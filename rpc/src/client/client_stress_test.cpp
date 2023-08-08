@@ -2,7 +2,7 @@
  * @Author: ligengchao ligengchao@pku.edu.cn
  * @Date: 2023-07-09 14:40:28
  * @LastEditors: Please set LastEditors
- * @LastEditTime: 2023-08-08 11:08:37
+ * @LastEditTime: 2023-08-08 16:16:50
  * @FilePath: /projects/newRpc/rpc-demo/src/client/client.cpp
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置
  * 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
@@ -152,10 +152,12 @@ int main() {
     s_RpcCoroMgr->Update();
     
     auto isBusy = s_ConnMgr->Tick();
-    if (s_ConnMgr->GetSendQueueSize() < 200)
+    if (s_ConnMgr->GetSendQueueSize() < 100)
         CallMeathod(stub);
+// #ifndef EnableRpcPerfStat
     else
         LLBC_Sleep(1);
+// #endif
   }
 
   LOG_INFO("client Stop");

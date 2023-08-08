@@ -60,7 +60,6 @@ void ConnComp::OnUpdate() {
            "Send packet failed, err: %s", LLBC_FormatLastError());
     }
 
-    // LLBC_Recycle(sendPacket);
     sendPacket = sendQueue_.Pop();
   }
 }
@@ -68,7 +67,7 @@ void ConnComp::OnUpdate() {
 void ConnComp::OnRecvPacket(LLBC_Packet &packet) {
   LOG_TRACE("OnRecvPacket:%s",
        packet.ToString().c_str());
-  LLBC_Packet *recvPacket = LLBC_GetObjectFromUnsafetyPool<LLBC_Packet>();
+  LLBC_Packet *recvPacket = LLBC_GetObjectFromSafetyPool<LLBC_Packet>();
   recvPacket->SetHeader(packet, packet.GetOpcode(), 0);
   recvPacket->SetPayload(packet.DetachPayload());
   recvQueue_.Push(recvPacket);
@@ -94,6 +93,9 @@ ConnMgr::~ConnMgr() {
 int ConnMgr::Init() {
   // Create service
   svc_ = LLBC_Service::Create("SvcTest");
+  #ifdef EnableRpcPerfStat
+    svc_->SetFPS(1000); 
+  #endif
   comp_ = new ConnComp;
   svc_->AddComponent(comp_);
   svc_->Subscribe(RpcOpCode::RpcReq, comp_, &ConnComp::OnRecvPacket);
