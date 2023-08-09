@@ -216,8 +216,8 @@ Server-side measurement results:
 
 |Test Function | No Coroutine | 	Coroutine |
 | --- | --- | --- |
-| Average processing time per RPC on the server-sid| 3.36us	|3.38 us|
-| Actual QPS|216,000 (2 clients, 99% CPU)|213,800 (2 clients, 99% CPU)|
+| Average processing time per RPC | 3.36us	|3.38 us|
+| QPS|216,000 (2 clients, 99% CPU)|213,800 (2 clients, 99% CPU)|
 
 According to the above test results, the switching execution time of C++20 coroutines is only 61.6ns. Therefore, whether or not coroutines are enabled to process RPC, the processing time of each Rpc remains almost unchanged, with an actual QPS of approximately 216,000, and the performance is excellent. Since from an implementation perspective, a single RPC call in this article only involves the creation and switching of one coroutine, there is no issue of nested coroutines at various levels. In addition, the connection management module also uses a dual-thread approach to reduce the load on the main thread. As a result, the performance of this framework is outstanding, with a measured QPS of up to 216,000 and a theoretical maximum QPS of 1 / 3.36us = 297,000. When the sleep time of the client and server is changed to 0, the average latency of the same machine Rpc call is about 1ms, and the minimum latency is 50us.
 
@@ -226,7 +226,7 @@ In addition, I have also implemented an RPC framework based on stackful coroutin
 |Test Function | No Coroutine | 	Coroutine |
 | --- | --- | --- |
 | Average processing time per RPC on the server-sid| 3.33us	|5.68 us|
-| Actual QPS|218,800 (3 clients, 99% CPU)|125,000 (2 clients, 99% CPU)|
+| QPS|218,800 (3 clients, 99% CPU)|125,000 (2 clients, 99% CPU)|
 
 From the above results, it can be seen that when not using coroutines to process RPC, there is not much difference in the RPC processing time and QPS between the two coroutine frameworks. However, since the switching time of stackful coroutines is about 700 times that of stackless coroutines, when using coroutines to process RPC, the QPS of the stackful coroutine solution is 40% lower than that of the stackless coroutine solution. But the advantage of the stackful coroutine solution is its higher usability.
 
