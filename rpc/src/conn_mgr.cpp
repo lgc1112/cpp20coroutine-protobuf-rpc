@@ -70,7 +70,7 @@ int ConnMgr::Init() {
 }
 
 int ConnMgr::Start() {
-  auto ret = svc_->Start(5);
+  auto ret = svc_->Start(4);
   LOG_TRACE("Service start, ret: %d", ret);
   return ret;
 }
@@ -102,7 +102,7 @@ RpcChannel *ConnMgr::GetRpcChannel(const char *ip, int port) {
     return nullptr;
   }
 
-  LOG_TRACE("GetRpcChannel, sessionId:%d, addr:%s", sessionId, addr.c_str());
+  LOG_INFO("GetRpcChannel, sessionId:%d, addr:%s", sessionId, addr.c_str());
   session2Addr_.emplace(sessionId, addr);
   return addr2Channel_.emplace(addr, new RpcChannel(this, sessionId))
       .first->second;
@@ -115,10 +115,13 @@ int ConnMgr::CloseSession(int sessionId) {
     return LLBC_FAILED;
   }
 
-  addr2Channel_.erase(it->second);
+  auto addrIt = addr2Channel_.find(it->second);
+  delete addrIt->second;
+  addr2Channel_.erase(addrIt);
+
   session2Addr_.erase(it);
 
-  LOG_TRACE("CloseSession, %d", sessionId);
+  LOG_INFO("CloseSession, %d", sessionId);
   return svc_->RemoveSession(sessionId);
 }
 

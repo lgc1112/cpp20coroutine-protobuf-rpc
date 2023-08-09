@@ -82,6 +82,7 @@ struct GetHandleAwaiter {
 
 class RpcCoroInfo {
 public:
+  RpcCoroInfo() {}
   RpcCoroInfo(int coroId, RpcCoroMgr *coroMgr, RpcController *controller,
               google::protobuf::Message *rsp, int timeoutTime = CoroTimeoutTime)
       : id_(coroId), coroMgr_(coroMgr), controller_(controller), rsp_(rsp),
@@ -99,6 +100,11 @@ public:
   llbc::sint64 GetTimeoutTime() const { return timeoutTime_; }
   // 恢复协程
   void Resume();
+  void SetCoroId(int id) { id_ = id; }
+  void SetRpcCoroMgr(RpcCoroMgr *coroMgr) { coroMgr_ = coroMgr; }
+  void SetController(RpcController *controller) { controller_ = controller; }
+  void SetRsp(google::protobuf::Message *rsp) { rsp_ = rsp; }
+  void SetTimeoutTime(llbc::sint64 timeoutTime) { timeoutTime_ = timeoutTime; }
 
   void OnCoroTimeout();
   void OnCoroCancel();

@@ -2,7 +2,7 @@
  * @Author: ligengchao ligengchao@pku.edu.cn
  * @Date: 2023-07-09 14:40:28
  * @LastEditors: Please set LastEditors
- * @LastEditTime: 2023-08-09 10:03:50
+ * @LastEditTime: 2023-08-09 21:44:09
  * @FilePath: /projects/newRpc/rpc-demo/src/client/client.cpp
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置
  * 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
@@ -102,7 +102,7 @@ int main() {
   EchoService_MyStub stub(channel);
 
   // 主循环处理 rpc 请求
-  int count = 0;
+  int count = 888;
   while (!stop) {
     // 更新协程管理器，处理超时协程
     s_RpcCoroMgr->Update();

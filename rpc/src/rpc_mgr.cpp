@@ -44,6 +44,7 @@ void RpcMgr::AddService(::google::protobuf::Service *service) {
   _services[service_info.sd->name()] = service_info;
 }
 
+// LLBC_UnsafetyObjectPool objPool;
 void RpcMgr::HandleRpcReq(LLBC_Packet &packet) {
 #ifdef EnableRpcPerfStat
   beginRpcReqTime = llbc::LLBC_GetMicroSeconds();
@@ -74,6 +75,7 @@ void RpcMgr::HandleRpcReq(LLBC_Packet &packet) {
   auto rsp = service->GetResponsePrototype(md).New();
 
   auto controller = new RpcController();
+  // auto controller = objPool.Get<RpcController>();
   controller->SetParam1(packet.GetSessionId());
   controller->SetParam2(srcCoroId);
 
@@ -167,4 +169,5 @@ void RpcMgr::OnRpcDone(RpcController *controller,
   // 回包
   connMgr_->PushPacket(packet);
   delete controller;
+  // LLBC_Recycle(controller);
 }

@@ -46,11 +46,18 @@ RpcCoroMgr::~RpcCoroMgr() {
 int RpcCoroMgr::AddRpcCoroInfo(RpcController *controller,
                                google::protobuf::Message *rsp) {
   int id = maxCoroId++;
+  // auto coroInfo = LLBC_GetObjectFromSafetyPool<RpcCoroInfo>();
+  // coroInfo->SetCoroId(id);
+  // coroInfo->SetRpcCoroMgr(this);
+  // coroInfo->SetController(controller);
+  // coroInfo->SetRsp(rsp);
+  // coroInfo->SetTimeoutTime(llbc::LLBC_GetMilliSeconds() + CoroTimeoutTime);
+
   auto coroInfo = new RpcCoroInfo(id, this, controller, rsp);
   coroInfos_[id] = coroInfo;
-  // #ifndef EnableRpcPerfStat
+  #ifndef EnableRpcPerfStat
   coroTimeHeap_.Insert(coroInfo);
-  // #endif
+  #endif
   return id;
 }
 
@@ -75,9 +82,10 @@ void RpcCoroMgr::ResumeRpcCoro(int coroId) {
       coroInfo->GetHandle())
       .resume();
   LOG_TRACE("parentCoro resumed");
-  // #ifndef EnableRpcPerfStat
+  #ifndef EnableRpcPerfStat
   coroTimeHeap_.DeleteElem(coroInfo);
-  // #endif
+  #endif
+  // LLBC_Recycle(coroInfo);
   delete coroInfo;
   coroInfos_.erase(it);
 
