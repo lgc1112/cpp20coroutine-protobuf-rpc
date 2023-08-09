@@ -225,7 +225,7 @@ In addition, I have also implemented an RPC framework based on stackful coroutin
 
 |Test Function | No Coroutine | 	Coroutine |
 | --- | --- | --- |
-| Average processing time per RPC on the server-sid| 3.33us	|5.68 us|
+| Average processing time per RPC| 3.33us	|5.68 us|
 | QPS|218,800 (3 clients, 99% CPU)|125,000 (2 clients, 99% CPU)|
 
 From the above results, it can be seen that when not using coroutines to process RPC, there is not much difference in the RPC processing time and QPS between the two coroutine frameworks. However, since the switching time of stackful coroutines is about 700 times that of stackless coroutines, when using coroutines to process RPC, the QPS of the stackful coroutine solution is 40% lower than that of the stackless coroutine solution. But the advantage of the stackful coroutine solution is its higher usability.
