@@ -178,8 +178,63 @@ Tcp communication: For the Tcp communication part, in order to avoid reinventing
 # Performance Testing
 In this framework,  a single RPC call on the client side in this article only involves the creation and switching of one coroutine, without the issue of nested coroutines at various levels; the server side can either not create a coroutine or only create one. In addition, the connection management module uses a dual-thread approach to reduce the load on the main thread. Therefore, theoretically, this framework has excellent performance.
 
-Specific test data and results will be supplemented later. 
+## Test Environment
+|Name|Value|
+| --- | --- | 
+|CPU  | AMD EPYC 7K62 48-Core Processor |
+|CPU Frequency|2595.124MHz|
+|Image|Tencent Cloud tLinux 2.2-Integrated Edition|
+|System|centOS7|
+|CPU Cores|16|
+|Memory|32G|
+## Test Steps
+In rpc_def.h, uncomment #define EnableRpcPerfStat, then run the generated ./server and ./client_stress_test for testing. Client output results are as follows:
 
-// TODO: Specific data to be supplemented...
+Client output results are as follows:
+```
+23-08-08 16:11:14.752869 [INFO ][client_stress_test.cpp:57 CallMeathod]<> - Rpc Statistic fin, Count:112005, Fail Count:0, Total sum Time:381168879, Avg Time:3403.14, Max Time:6207, Min Time:369
+23-08-08 16:11:15.752873 [INFO ][client_stress_test.cpp:57 CallMeathod]<> - Rpc Statistic fin, Count:109834, Fail Count:0, Total sum Time:427922472, Avg Time:3896.08, Max Time:25800, Min Time:386
+23-08-08 16:11:16.752881 [INFO ][client_stress_test.cpp:57 CallMeathod]<> - Rpc Statistic fin, Count:110315, Fail Count:0, Total sum Time:424517227, Avg Time:3848.23, Max Time:25989, Min Time:273
+23-08-08 16:11:17.752884 [INFO ][client_stress_test.cpp:57 CallMeathod]<> - Rpc Statistic fin, Count:117797, Fail Count:0, Total sum Time:378102349, Avg Time:3209.78, Max Time:24484, Min Time:159
+23-08-08 16:11:18.752928 [INFO ][client_stress_test.cpp:57 CallMeathod]<> - Rpc Statistic fin, Count:116320, Fail Count:0, Total sum Time:401001834, Avg Time:3447.40, Max Time:30458, Min Time:162
+23-08-08 16:11:19.752945 [INFO ][client_stress_test.cpp:57 CallMeathod]<> - Rpc Statistic fin, Count:114063, Fail Count:0, Total sum Time:418513161, Avg Time:3669.14, Max Time:32304, Min Time:242
+```
+Server output results are as follows:
+```
+23-08-08 22:57:20.765787 [INFO ][rpc_mgr.cpp:97 HandleRpcReq]<> - Rpc Statistic fin, Count:221057, Total sum Time:881181, Avg Time:3.99, Max Time:99, Min Time:2
+23-08-08 22:57:21.765789 [INFO ][rpc_mgr.cpp:97 HandleRpcReq]<> - Rpc Statistic fin, Count:225007, Total sum Time:881178, Avg Time:3.92, Max Time:76, Min Time:2
+23-08-08 22:57:22.765791 [INFO ][rpc_mgr.cpp:97 HandleRpcReq]<> - Rpc Statistic fin, Count:225047, Total sum Time:807463, Avg Time:3.59, Max Time:36, Min Time:2
+23-08-08 22:57:23.765796 [INFO ][rpc_mgr.cpp:97 HandleRpcReq]<> - Rpc Statistic fin, Count:233627, Total sum Time:823445, Avg Time:3.52, Max Time:87, Min Time:2
+```
+
+## Test Reuslt
+Since our RPC server supports processing RPC with and without coroutines, we measure the performance in both cases.
+
+First, create 1 million coroutines and execute them, the average time for creating and executing each libco coroutine is: **61.6ns**.
+
+Server-side measurement results:
+
+|Test Function | No Coroutine | 	Coroutine |
+| --- | --- | --- |
+| Average processing time per RPC | 3.36us	|3.38 us|
+| QPS|216,000 (2 clients, 99% CPU)|213,800 (2 clients, 99% CPU)|
+
+According to the above test results, the switching execution time of C++20 coroutines is only 61.6ns. Therefore, whether or not coroutines are enabled to process RPC, the processing time of each Rpc remains almost unchanged, with an actual QPS of approximately 216,000, and the performance is excellent. Since from an implementation perspective, a single RPC call in this article only involves the creation and switching of one coroutine, there is no issue of nested coroutines at various levels. In addition, the connection management module also uses a dual-thread approach to reduce the load on the main thread. As a result, the performance of this framework is outstanding, with a measured QPS of up to 216,000 and a theoretical maximum QPS of 1 / 3.36us = 297,000. When the sleep time of the client and server is changed to 0, the average latency of the same machine Rpc call is about 1ms, and the minimum latency is 50us.
+
+In addition, I have also implemented an RPC framework based on stackful coroutines using libco, which can be seen at: [Lightweight, High-Performance RPC Framework Based on libco and protobuf](https://github.com/lgc1112/libco-protobuf-rpc). Its measurement results are as follows:
+
+|Test Function | No Coroutine | 	Coroutine |
+| --- | --- | --- |
+| Average processing time per RPC on the server-sid| 3.33us	|5.68 us|
+| QPS|218,800 (3 clients, 99% CPU)|125,000 (2 clients, 99% CPU)|
+
+From the above results, it can be seen that when not using coroutines to process RPC, there is not much difference in the RPC processing time and QPS between the two coroutine frameworks. However, since the switching time of stackful coroutines is about 700 times that of stackless coroutines, when using coroutines to process RPC, the QPS of the stackful coroutine solution is 40% lower than that of the stackless coroutine solution. But the advantage of the stackful coroutine solution is its higher usability.
+
+# Conclusion
+Compared to stackful coroutine RPC frameworks, the advantage of the framework in this article lies in its higher performance. The switching efficiency of C++20 coroutines is far superior to that of stackful coroutines, as they do not need to preserve stack information, and as a language-level design, they can fully utilize the optimization capabilities of the compiler, thus providing excellent performance. However, the drawback is also quite obvious, that is, RPC methods must be called within coroutine methods and cannot be freely called within nested functions. Essentially, it can be regarded as a form of asynchronous call. From an implementation perspective, a single RPC call on the client side in this article only involves the creation and switching of one coroutine, without the issue of nested coroutines at various levels; the server side can either not create a coroutine or only create one. In addition, the connection management module uses a dual-thread approach to reduce the load on the main thread. Therefore, theoretically, this framework has excellent performance.
+
+To achieve synchronous RPC calls within nested functions of coroutine methods, some stackless coroutine RPC frameworks do the following: if an RPC call is needed within an internal function, then all functions in the call stack must be coroutines, i.e., a single RPC call is completed by multiple nested coroutines. Another approach is to manually save stack information, but this is essentially a stackful coroutine solution. Moreover, the nested stackless coroutine call method significantly increases the complexity of use, and its performance is not necessarily more efficient than a single stackful coroutine.
+
+This article's framework can also support nested coroutine calls by simply adding a nested call coroutine library and initiating an RPC in the innermost coroutine. Since this article is more focused on implementing a lightweight, high-performance RPC framework, it only provides a simple encapsulation of C++20 coroutines and does not integrate some complex coroutine scheduling libraries. However, in theory, integrating these coroutine libraries is not a problem. To compare and study with stackful coroutine RPC frameworks, I have also implemented a similar stackful coroutine RPC, which can be seen at: Lightweight, High-Performance RPC Framework Based on libco and protobuf. This framework has much better usability because stackless coroutine RPC often sacrifices some usability for performance.
 
 
