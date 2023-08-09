@@ -127,6 +127,8 @@ public:
   int AddRpcCoroInfo(RpcController *controller, google::protobuf::Message *rsp);
   // 获取协程信息
   RpcCoroInfo *GetRpcCoroInfo(int coroId);
+  // 获取协程数量
+  int GetRpcCoroCount() const { return coroInfos_.size(); }
   // 恢复对应的协程
   void ResumeRpcCoro(int coroId);
   // 主协程定时调用，处理超时协程

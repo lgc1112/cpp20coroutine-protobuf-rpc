@@ -2,7 +2,7 @@
  * @Author: ligengchao ligengchao@pku.edu.cn
  * @Date: 2023-07-09 14:40:28
  * @LastEditors: Please set LastEditors
- * @LastEditTime: 2023-08-08 23:04:58
+ * @LastEditTime: 2023-08-09 14:38:18
  * @FilePath: /projects/newRpc/rpc-demo/src/client/client.cpp
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置
  * 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
@@ -20,7 +20,6 @@
 
 using namespace llbc;
 
-int waitRspNum = 0;
 long long printTime = 0;
 long long rpcCallCount = 0, failCount = 0, finishCount = 0;
 long long rpcCallTimeSum = 0;
@@ -30,34 +29,28 @@ echo::EchoRequest req;
 echo::EchoResponse rsp;
 
 RpcCoro CallMeathod(EchoService_MyStub &stub) {
-  // 创建rpc req & resp
-  // void *handle = co_await GetHandleAwaiter{};
-
   // 获取当前协程handle并构造proto controller并构造proto rpc stub并
   RpcController cntl(co_await GetHandleAwaiter{});
 
   long long beginRpcReqTime = llbc::LLBC_GetMicroSeconds();
 
   // 调用生成的rpc方法Echo,然后挂起协程等待返回
-  waitRspNum++;
   co_await stub.Echo(&cntl, &req, &rsp, nullptr);
-  waitRspNum--;
 
   long long endTime = llbc::LLBC_GetMicroSeconds();
-  long long tmpTime = endTime - beginRpcReqTime;
-  rpcCallTimeSum += tmpTime;
+  long long callTime = endTime - beginRpcReqTime;
+  rpcCallTimeSum += callTime;
   rpcCallCount++;
   if (cntl.Failed()) {
     ++failCount;
   }
-  if (tmpTime > maxRpcCallTime)
-    maxRpcCallTime = tmpTime;
-  if (tmpTime < minRpcCallTime)
-    minRpcCallTime = tmpTime;
 
+  maxRpcCallTime = std::max(maxRpcCallTime, callTime);
+  minRpcCallTime = std::min(minRpcCallTime, callTime);
+  //1s打印一次统计信息
   if (endTime - printTime >= 1000000) {
-    LOG_INFO("Rpc Statistic fin, Count:%lld, Fail Count:%lld, Total sum "
-             "Time:%lld, Avg Time:%.2f, Max Time:%lld, Min Time:%lld",
+    LOG_INFO("Rpc Statistic fin, Rpc Count:%lld, Fail Count:%lld, Total sum "
+             "Time:%lld, Avg Rpc Time:%.2f, Max Time:%lld, Min Time:%lld",
              rpcCallCount, failCount, rpcCallTimeSum,
              (double)rpcCallTimeSum / rpcCallCount, maxRpcCallTime,
              minRpcCallTime);
@@ -81,12 +74,12 @@ RpcCoro CallMeathod() {
   rpcCallCount++;
   co_return;
 }
+
 void testCoroTime() {
   long long rpcCallTimeSum = 0;
 
   long long beginTime = llbc::LLBC_GetMicroSeconds();
-  for (int i = 0; i < 10000000; i++) {
-    // CallMeathod();
+  for (int i = 0; i < 1000000; i++) {
     auto func = []() -> RpcCoro {
       rpcCallCount++;
       co_return;
@@ -154,14 +147,12 @@ int main() {
   while (!stop) {
     // 更新协程管理器，处理超时协程
     s_RpcCoroMgr->Update();
-
+    // 更新连接管理器，处理网络数据包
     s_ConnMgr->Tick();
-    if (waitRspNum <= 200)
+    if (s_RpcCoroMgr->GetRpcCoroCount() <= 200)
       CallMeathod(stub);
-    // #ifndef EnableRpcPerfStat
     else
       LLBC_Sleep(1);
-    // #endif
   }
 
   LOG_INFO("client Stop");

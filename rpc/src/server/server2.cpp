@@ -1,11 +1,9 @@
 /*
  * @Author: ligengchao ligengchao@pku.edu.cn
- * @Date: 2023-07-09 14:40:28
+ * @Date: 2023-07-09 17:19:49
  * @LastEditors: Please set LastEditors
- * @LastEditTime: 2023-08-07 20:33:07
- * @FilePath: /projects/newRpc/rpc-demo/src/server/server2.cpp
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置
- * 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ * @LastEditTime: 2023-08-09 10:08:53
+ * @FilePath: /projects/newRpc/rpc-demo/src/server/server.cpp
  */
 #include "conn_mgr.h"
 #include "echo_service_impl.h"
@@ -31,6 +29,7 @@ int main() {
   // 初始化llbc库
   LLBC_Startup();
   LLBC_Defer(LLBC_Cleanup());
+  LLBC_HookProcessCrash();
 
   // 初始化日志
   const std::string path = __FILE__;
@@ -45,29 +44,30 @@ int main() {
 
   LOG_TRACE("Hello Server!");
 
-  ConnMgr *connMgr = s_ConnMgr;
-  connMgr->Init();
+  // 初始化rpc协程管理器
+  s_ConnMgr->Init();
+  RpcMgr serviceMgr(s_ConnMgr);
+  s_ConnMgr->Start();
 
-  // 启动rpc服务
-  if (connMgr->StartRpcService("127.0.0.1", 6699) != LLBC_OK) {
-    LOG_WARN("connMgr StartRpcService Fail");
+  // 启动rpc监听服务
+  if (s_ConnMgr->StartRpcService("127.0.0.1", 6699) != LLBC_OK) {
+    LOG_TRACE("connMgr StartRpcService Fail");
     return -1;
   }
 
-  RpcMgr serviceMgr(connMgr);
+  // 添加rpc服务
   MyEchoService echoService;
   serviceMgr.AddService(&echoService);
 
-  // 死循环处理rpc请求
+  // 主循环
   while (!stop) {
-    connMgr->Tick();
+    // 更新协程管理器，处理超时协程
     s_RpcCoroMgr->Update();
-    LLBC_Sleep(1);
+    // 更新连接管理器，处理接收到的rpc req和rsp
+    s_ConnMgr->Tick();
   }
 
   LOG_TRACE("server Stop");
 
   return 0;
 }
-
-/* vim: set ts=4 sw=4 sts=4 tw=100 */

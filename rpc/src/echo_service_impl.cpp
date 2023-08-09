@@ -24,8 +24,8 @@ void MyEchoService::Echo(::google::protobuf::RpcController *controller,
                          ::google::protobuf::Closure *done) {
 
 #ifndef EnableRpcPerfStat
-  LOG_INFO("received, msg:%s", request->msg().c_str());
   // LLBC_Sleep(5000); timeout test
+  LOG_INFO("received, msg:%s", request->msg().c_str());
   response->set_msg(std::string(" Echo >>>>>>> ") + request->msg());
   done->Run();
 #else
@@ -38,12 +38,13 @@ RpcCoro InnerCallMeathod(::google::protobuf::RpcController *controller,
                          const ::echo::EchoRequest *req,
                          ::echo::EchoResponse *rsp,
                          ::google::protobuf::Closure *done) {
+  LOG_INFO("received, msg:%s", req->msg().c_str());
   // 初始化内部 rpc req & rsp
   echo::EchoRequest innerReq;
   innerReq.set_msg("Relay Call >>>>>>" + req->msg());
   echo::EchoResponse innerRsp;
   // 创建 rpc channel
-  RpcChannel *channel = s_ConnMgr->GetRpcChannel("127.0.0.1", 6688);
+  RpcChannel *channel = s_ConnMgr->GetRpcChannel("127.0.0.1", 6699);
   if (!channel) {
     LOG_INFO("GetRpcChannel Fail");
     rsp->set_msg(req->msg() + " ---- inner rpc call server not exist");
