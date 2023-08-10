@@ -20,11 +20,11 @@ void ConnComp::OnDestroy(bool &destroyFinished) {
 }
 
 void ConnComp::OnSessionCreate(const LLBC_SessionInfo &sessionInfo) {
-  LOG_TRACE("Session Create: %s", sessionInfo.ToString().c_str());
+  LOG_INFO("Session Create: %s", sessionInfo.ToString().c_str());
 }
 
 void ConnComp::OnSessionDestroy(const LLBC_SessionDestroyInfo &destroyInfo) {
-  LOG_TRACE("Session Destroy, info: %s", destroyInfo.ToString().c_str());
+  LOG_INFO("Session Destroy, info: %s", destroyInfo.ToString().c_str());
   s_ConnMgr->CloseSession(destroyInfo.GetSessionId());
 }
 
@@ -33,7 +33,7 @@ void ConnComp::OnAsyncConnResult(const LLBC_AsyncConnResult &result) {
 }
 
 void ConnComp::OnUnHandledPacket(const LLBC_Packet &packet) {
-  LOG_TRACE("Unhandled packet, sessionId: %d, opcode: %d, payloadLen: %ld",
+  LOG_INFO("Unhandled packet, sessionId: %d, opcode: %d, payloadLen: %ld",
             packet.GetSessionId(), packet.GetOpcode(),
             packet.GetPayloadLength());
 }
