@@ -97,7 +97,7 @@ void RpcMgr::HandleRpcReq(LLBC_Packet &packet) {
 
   if (endTime - printTime >= 1000000) {
     LOG_INFO("Rpc Statistic fin, Count:%lld, Total sum Time:%lld, Avg "
-             "Time:%.2f, Max Time:%lld, Min Time:%lld",
+             "Time:%.2f, Max Time:%lld, Min Time:%lld\n",
              rpcCallCount, rpcCallTimeSum,
              (double)rpcCallTimeSum / rpcCallCount, maxRpcCallTime,
              minRpcCallTime);
@@ -160,6 +160,7 @@ void RpcMgr::OnRpcDone(RpcController *controller,
   LOG_TRACE("coroSessionId:%d, srcCoroId:%d, errText:%s", sessionId, srcCoroId,
             controller->ErrorText().c_str());
   auto packet = LLBC_GetObjectFromSafetyPool<LLBC_Packet>();
+  // LLBC_Packet *packet = new LLBC_Packet();
   packet->SetSessionId(sessionId);
   packet->SetOpcode(RpcOpCode::RpcRsp);
   packet->Write(srcCoroId);

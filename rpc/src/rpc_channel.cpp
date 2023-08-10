@@ -25,6 +25,7 @@ void RpcChannel::CallMethod(const ::google::protobuf::MethodDescriptor *method,
   LOG_TRACE("CallMethod!");
   // 创建并填充发送包
   LLBC_Packet *sendPacket = LLBC_GetObjectFromSafetyPool<LLBC_Packet>();
+  // LLBC_Packet *sendPacket = new LLBC_Packet();
   sendPacket->SetHeader(0, RpcOpCode::RpcReq, 0);
   sendPacket->SetSessionId(sessionId_);
   sendPacket->Write(method->service()->name());

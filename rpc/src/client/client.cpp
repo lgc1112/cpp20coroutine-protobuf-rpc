@@ -1,8 +1,8 @@
 /*
  * @Author: ligengchao ligengchao@pku.edu.cn
  * @Date: 2023-07-09 14:40:28
- * @LastEditors: Please set LastEditors
- * @LastEditTime: 2023-08-09 21:44:09
+ * @LastEditors: regangcli regangcli@tencent.com
+ * @LastEditTime: 2023-08-10 00:07:38
  * @FilePath: /projects/newRpc/rpc-demo/src/client/client.cpp
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置
  * 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
@@ -42,7 +42,7 @@ RpcCoro CallMeathod(RpcChannel *channel) {
   LOG_INFO("Rpc RelayEcho Call, msg:%s", req.msg().c_str());
   // 调用生成的rpc方法RelayEcho,然后挂起协程等待返回
   co_await stub.RelayEcho(&cntl, &req, &rsp, nullptr);
-  LOG_INFO("Recv RelayEcho Rsp, status:%s, rsp:%s",
+  LOG_INFO("Recv RelayEcho Rsp, status:%s, rsp:%s\n",
            cntl.Failed() ? cntl.ErrorText().c_str() : "success",
            rsp.msg().c_str());
   co_return;

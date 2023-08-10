@@ -25,7 +25,7 @@ void MyEchoService::Echo(::google::protobuf::RpcController *controller,
 
 #ifndef EnableRpcPerfStat
   // LLBC_Sleep(5000); timeout test
-  LOG_INFO("received, msg:%s", request->msg().c_str());
+  LOG_INFO("received, msg:%s\n", request->msg().c_str());
   response->set_msg(std::string(" Echo >>>>>>> ") + request->msg());
   done->Run();
 #else
@@ -59,7 +59,7 @@ RpcCoro InnerCallMeathod(::google::protobuf::RpcController *controller,
 
   EchoService_MyStub stub(channel);
   co_await stub.Echo(&cntl, &innerReq, &innerRsp, nullptr);
-  LOG_INFO("Recv rsp, status:%s, rsp:%s",
+  LOG_INFO("Recv rsp, status:%s, rsp:%s\n",
            cntl.Failed() ? cntl.ErrorText().c_str() : "success",
            innerRsp.msg().c_str());
   if (cntl.Failed()) {
